@@ -1,0 +1,24 @@
+﻿---
+BasedOnStyle: Chromium
+AlignAfterOpenBracket: 'AlwaysBreak'
+AlignConsecutiveAssignments: 'true'
+AlignConsecutiveDeclarations: 'true'
+AlignOperands: 'true'
+AlignTrailingComments: 'true'
+AllowAllParametersOfDeclarationOnNextLine: 'false'
+AllowShortBlocksOnASingleLine: 'true'
+AllowShortFunctionsOnASingleLine: All
+AlwaysBreakAfterDefinitionReturnType: TopLevel
+BinPackArguments: 'false'
+BinPackParameters: 'false'
+BreakBeforeBraces: Stroustrup
+BreakConstructorInitializers: 'BeforeColon'
+#AllowAllConstructorInitializersOnNextLine: 'false'
+ColumnLimit: '120'
+ConstructorInitializerAllOnOneLineOrOnePerLine: 'true'
+KeepEmptyLinesAtTheStartOfBlocks: 'true'
+MaxEmptyLinesToKeep: '2'
+#SpaceBeforeCtorInitializerColon: 'true'
+SortIncludes: 'true'
+SpacesInParentheses: 'false'
+...
