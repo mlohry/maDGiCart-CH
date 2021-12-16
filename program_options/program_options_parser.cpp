@@ -87,15 +87,21 @@ ProgramOptionsParser::ProgramOptionsParser()
       "Solution output file name, without file extension.")(
       "log_file",
       po::value<std::string>(&Options::get().log_file_)->default_value("maDGiCart"),
-      "Solution output file name, without file extension.")(
-      "interactive_plots",
-      po::value<bool>(&Options::get().interactive_plots_)->default_value(true),
-      "Use interactive plots.");
+      "Solution output file name, without file extension.");
 
   physics.add_options()(
       "equation_type",
       po::value<std::string>(&Options::get().equation_type_)->default_value("cahn-hilliard"),
-      "Governing equations to solve.");
+      "Governing equations to solve.")(
+      "m",
+      po::value<double>(&Options::get().ch_m_)->default_value(0.0),
+      "Macroscopic average volume fraction of concentration.")(
+      "eps2",
+      po::value<double>(&Options::get().ch_eps2_)->default_value(2.419753086419753e-05),
+      "epsilon^2, the biharmonic coefficient.")(
+      "sigma",
+      po::value<double>(&Options::get().ch_sigma_)->default_value(291.4488109293305),
+      "sigma, the coefficient of the linearly stabilizing term about m.");
 
   discretization.add_options()(
       "domain_x_begin",
@@ -147,6 +153,7 @@ ProgramOptionsParser::ProgramOptionsParser()
       "time_rel_err_tol",
       po::value<double>(&Options::get().time_rel_err_tol_)->default_value(1e-2),
       "Relative error tolerance for adaptive time stepping.");
+
 }
 
 void ProgramOptionsParser::parseInputOptions(const std::vector<std::string>& cmd_line)
