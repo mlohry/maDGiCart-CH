@@ -59,10 +59,6 @@ class Options
   // file options
   std::string config_file_;
   std::string solution_output_file_;
-<<<<<<< HEAD
-  bool interactive_plots_;
-=======
->>>>>>> add mods for ch
   std::string log_file_;
 
   // governing_equations options

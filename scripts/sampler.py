@@ -21,11 +21,7 @@ def compute_sigma_from_X_and_m( X : float ,
 
 def main( build_dir : str ):
 
-<<<<<<< HEAD
     m     = 0.5
-=======
-    m     = 0.7
->>>>>>> add mods for ch
     X     = 0.3
 
     eps2  = compute_eps2_from_X_and_m(  X , m )
