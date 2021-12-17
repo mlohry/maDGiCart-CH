@@ -21,7 +21,7 @@ def compute_sigma_from_X_and_m( X : float ,
 
 def main( build_dir : str ):
 
-    m     = 0.7
+    m     = 0.5
     X     = 0.3
 
     eps2  = compute_eps2_from_X_and_m(  X , m )
