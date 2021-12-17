@@ -77,6 +77,7 @@ class Logger {
 
  private:
   Logger();
+  ~Logger() = default;
   static std::string makeBanner();
 
   const std::string banner_;

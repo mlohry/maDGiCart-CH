@@ -52,6 +52,8 @@ Puppeteer::run()
   if (Options::get().interactive_plots()) {
     plotSolution(time_integrator_->getCurrentSolutionState());
   }
+
+  Logger::get().InfoMessage(Profiler::get().finalize());
 }
 
 void

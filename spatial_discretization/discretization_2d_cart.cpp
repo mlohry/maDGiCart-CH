@@ -87,27 +87,13 @@ void
 Discretization2DCart::printState(const ManagedArray2D<real_wp>& state_in) const
 {
   auto state = read_access_host(state_in);
-//  std::cout << "njhalo_-1 " << njhalo_ - 1 << " -nhalo" << -nhalo_ << "\n";
-//  std::cout << "-nhalo_ " << -nhalo_ << " nihalo_ " << nihalo_ << "\n";
+
   for (int j = ni_ + nhalo_ - 1; j >= -nhalo_; --j) {
     for (int i = -nhalo_; i < ni_ + nhalo_; ++i) {
       std::cout << std::scientific << state(i, j) << " ";
     }
     std::cout << std::endl;
   }
-
-
-  // auto state = read_access_host(state_in.asArray());
-  //  maDGForAllHost(i, 0, state.size(), {
-  //    std::cout << state[i] << "\n";
-  //  })
-  //
-  //  for (int j = njhalo_-1; j >= -nhalo_; --j){
-  //    for (int i = -nhalo_; i < nihalo_; ++i){
-  //      std::cout << std::scientific << state(i,j) << " ";
-  //    }
-  //    std::cout << std::endl;
-  //  }
 }
 
 void
