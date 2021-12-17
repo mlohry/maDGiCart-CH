@@ -39,7 +39,7 @@ TEST(Discretization2DCart, Laplacian)
     maDGForAllHost(ii, 0, idx.size(), {
       int i;
       int j;
-      f.idx1d(i, j);
+      f.getIJ(idx[ii], i, j);
       const real_wp expected = -2.0 * sin(x(i, j)) * cos(y(i, j));
       squared_norm += pow(expected - laplacian(i, j), 2.0);
     });
@@ -50,7 +50,7 @@ TEST(Discretization2DCart, Laplacian)
   }
 
   std::cout << "cartesian finite difference laplacian error:\n" << accuracy_laplacian << "\n";
-  EXPECT_NEAR(accuracy_laplacian.getConvergenceRate().at(expected_order).back(), expected_order + 1, 0.01);
+  EXPECT_NEAR(accuracy_laplacian.getConvergenceRate().at(expected_order).back(), expected_order, 0.01);
 }
 
 

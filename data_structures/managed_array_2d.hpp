@@ -20,10 +20,6 @@ class ManagedArray2DAccessor {
   {
   }
 
-  //  MADG_HOST_DEVICE inline int idx1d(int i, int j) const { return (i + nhalo_layers_) * njhalo_ + nhalo_layers_ + j;
-  //  }
-  MADG_HOST_DEVICE inline int idx1d(int i, int j) const { return get1Dindex(i, j, nhalo_layers_, njhalo_); }
-
   MADG_HOST_DEVICE inline T& operator()(int i, int j) const { return data_[idx1d(i, j)]; }
 
   MADG_HOST_DEVICE inline void getIJ(int idx, int& i, int& j) const
@@ -37,6 +33,8 @@ class ManagedArray2DAccessor {
   const int nhalo_layers_;
   const int nihalo_;
   const int njhalo_;
+
+  MADG_HOST_DEVICE inline int idx1d(int i, int j) const { return get1Dindex(i, j, nhalo_layers_, njhalo_); }
 };
 
 

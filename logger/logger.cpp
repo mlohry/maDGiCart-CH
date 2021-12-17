@@ -2,6 +2,7 @@
 #include "git_info.hpp"
 
 #include "parallel/machine.hpp"
+#include "profiler.hpp"
 
 #include <boost/date_time.hpp>
 #include <boost/filesystem.hpp>

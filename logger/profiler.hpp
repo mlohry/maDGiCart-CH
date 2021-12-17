@@ -40,9 +40,11 @@ class Profiler
     const std::string                                                 function_name_;
   };
 
+  std::string finalize();
+
  private:
-  Profiler() {}
-  ~Profiler();
+  Profiler() = default;
+  ~Profiler() = default;
 
 
   void tic(const std::string& function_name);

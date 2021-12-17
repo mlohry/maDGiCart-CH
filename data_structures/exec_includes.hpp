@@ -25,7 +25,6 @@
 
 #ifdef MADG_USE_GPU
 #ifdef __NVCC__
-#include "cublas_v2.h"
 #define MADG_CUDA_BLOCK_SIZE 256
 using device_exec_policy = RAJA::cuda_exec<MADG_CUDA_BLOCK_SIZE>;
 

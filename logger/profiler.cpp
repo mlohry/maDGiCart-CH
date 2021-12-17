@@ -9,7 +9,7 @@
 #include "logger.hpp"
 
 
-Profiler::~Profiler()
+std::string Profiler::finalize()
 {
   tabulate::Table table;
   table.add_row({"Function", "# calls", "Time (s)", "Percentage"});
@@ -61,16 +61,11 @@ Profiler::~Profiler()
   }
 
   table.column(0).format().width(70);
-//  table.row(0).format().padding_top(1).padding_bottom(1);
   table.column(3).format().font_align(tabulate::FontAlign::right);
-//  table[0][0].format().font_align(tabulate::FontAlign::center);
-//  table.row(0).format().padding_top(1);
-
-//  table.format().hide_border();
 
   std::stringstream ss;
   ss << table << std::endl;
-  Logger::get().InfoMessage(ss.str());
+  return ss.str();
 }
 
 

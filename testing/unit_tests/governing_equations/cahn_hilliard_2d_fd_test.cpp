@@ -46,11 +46,11 @@ TEST(CahnHilliard, RHSEvaluation)
     maDGForAllHost(ii, 0, idx.size(), {
       int i;
       int j;
-      f.idx1d(i, j);
+      f.getIJ(idx[ii], i, j);
 
       const real_wp sinx = sin(x(i, j));
       const real_wp siny = sin(y(i, j));
-      const real_wp cosx = cos(y(i, j));
+      const real_wp cosx = cos(x(i, j));
       const real_wp cosy = cos(y(i, j));
 
       // laplacian (c^3 -c)
@@ -74,5 +74,5 @@ TEST(CahnHilliard, RHSEvaluation)
   }
 
   std::cout << "cartesian finite difference Cahn-Hilliard error:\n" << accuracy_chrhs << "\n";
-  EXPECT_NEAR(accuracy_chrhs.getConvergenceRate().at(expected_order).back(), expected_order + 1, 0.01);
+  EXPECT_NEAR(accuracy_chrhs.getConvergenceRate().at(expected_order).back(), expected_order, 0.01);
 }
