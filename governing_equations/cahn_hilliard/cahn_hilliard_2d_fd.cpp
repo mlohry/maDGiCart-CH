@@ -26,7 +26,7 @@ CahnHilliard2DFD::setRandomInitialCondition(SolutionState& state) const
 
 
   auto idx = read_access_host(geom_.interiorIndices());
-  auto c   = write_access_host(state.getVec(0).asArray());
+  auto c   = write_access_host(state.getVec(0));
 
   /**
    * Would prefer to use a maDGForAllHost here but std::uniform_real_distribution lambda copy
@@ -116,10 +116,8 @@ CahnHilliard2DFD::solutionReport(const SolutionState& state, const SolutionState
 
   {
     ReduceSumReal squared_norm(0);
-    auto          rhs = read_access(residual.getVec(0).asArray());
+    auto          rhs = read_access(residual.getVec(0));
     auto          idx = read_access(geom_.interiorIndices());
-
-    const real_wp eps2 = eps2_;
 
     maDGForAll(ii, 0, idx.size(), {
       const int i = idx[ii];

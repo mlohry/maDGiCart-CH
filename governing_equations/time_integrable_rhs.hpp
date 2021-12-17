@@ -31,7 +31,5 @@ class TimeIntegrableRHS : public Observable
 
   virtual std::unique_ptr<SolutionState> createSolutionState() const = 0;
 
-  virtual double timeStepLimit(const SolutionState& solution) = 0;
-
   virtual const IndexArray& interiorIndices() const = 0;
 };

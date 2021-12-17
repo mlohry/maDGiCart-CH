@@ -16,7 +16,7 @@ residual_calculator(const TimeIntegrableRHS& rhs, const SolutionState& residuals
   for (int ieqn = 0; ieqn < rhs.nEquations(); ++ieqn) {
 
     ReduceSumReal squared_norm(0);
-    auto array = read_access(residuals.getVec(ieqn).asArray());
+    auto array = read_access(residuals.getVec(ieqn));
 
     maDGForAll(ii, 0, idx.size(), {
       squared_norm += pow(array[idx[ii]], 2.0);
