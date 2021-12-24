@@ -1,6 +1,6 @@
 # maDGiCart-CH
 
-![unit_test_ubuntu_20.04_github_runner](https://github.com/mlohry/maDG/actions/workflows/unit_test_github_runner.yml/badge.svg?branch=master)
+![unit_test_ubuntu_20.04_github_runner](https://github.com/mlohry/maDGiCart-CH/actions/workflows/unit_test_github_runner.yml/badge.svg?branch=master)
 
 ## Building
 
