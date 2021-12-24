@@ -63,10 +63,10 @@ TimeIntegrator::initialTimestep(TimeIntegrableRHS& rhs, const TimeIntegratorOpti
   real_t time      = options.t0_;
   real_t cfl       = options.cfl_;
   int_t  iteration = options.initial_step_;
+  real_t dt = -1;
 
-  real_t dt;
   if (options.use_cfl_time_step_) {
-    dt = options.cfl_ * rhs.timeStepLimit(solution);
+    Logger::get().FatalMessage("use_cfl_time_step CFL time stepping not implemented.");
   }
   else {
     dt = options.dt_initial_;
@@ -91,7 +91,7 @@ TimeIntegrator::computeNextTimestep(
   real_t dt               = current_dt;
 
   if (options.use_cfl_time_step_) {
-    dt = cfl * rhs.timeStepLimit(solution);
+    Logger::get().FatalMessage("use_cfl_time_step CFL time stepping not implemented.");
   }
 
   if (current_time + dt >= options.tfinal_) {

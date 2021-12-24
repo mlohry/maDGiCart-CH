@@ -22,7 +22,7 @@ CahnHilliardInitialConditions::set(const TimeIntegrableRHS& rhs, SolutionState& 
 
 
   auto idx = read_access_host(rhs.interiorIndices());
-  auto c   = write_access_host(state.getVec(0).asArray());
+  auto c   = write_access_host(state.getVec(0));
 
   /**
    * Would prefer to use a maDGForAllHost here but std::uniform_real_distribution lambda copy

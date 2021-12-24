@@ -102,9 +102,6 @@ Discretization2DCart::applyPeriodicBoundaryConditions(ManagedArray2D<real_wp>& s
   profile();
   auto      state  = read_write_access(state_in);
   const int nhalos = nhalo();
-  const int jstart = nhalos;
-  const int jend   = nhalos + ni();
-  const int istart = nhalos;
   const int nis    = ni();
   const int njs    = ni();
 
@@ -127,7 +124,6 @@ Discretization2DCart::applyPeriodicBoundaryConditions(ManagedArray2D<real_wp>& s
       state(i, j) = state(i, j - njs);
     }
   });
-
 
   maDGForAll(i, -nhalos, 0, {
     for (int j = -nhalos; j < 0; ++j) {  // sw

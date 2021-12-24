@@ -56,7 +56,7 @@ if(MADG_USE_GPU)
     find_package(CUDA REQUIRED)
     set(CMAKE_CUDA_STANDARD 14)
     set(CMAKE_CUDA_STANDARD_REQUIRED ON)
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -arch=sm_35 -Xcudafe --diag_suppress=esa_on_defaulted_function_ignored  -expt-extended-lambda --expt-relaxed-constexpr -Wno-deprecated-gpu-targets -Xcompiler -Wno-non-template-friend")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --Wext-lambda-captures-this --Werror=all-warnings -arch=sm_35 --expt-extended-lambda --expt-relaxed-constexpr -Wno-deprecated-gpu-targets -Xcompiler -Wno-non-template-friend,-Wall,-Werror")
 endif(MADG_USE_GPU)
 
 
@@ -68,8 +68,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
-set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -Wall -Wno-error=unused-function -Wno-error=sign-compare -Wno-int-in-bool-context -Werror=reorder  ${STD_FLAG} ${FP_PRECISION_FLAG} ${OpenMP_CXX_FLAGS}")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -g -w -DNDEBUG ${STD_FLAG} ${FP_PRECISION_FLAG} -Werror=non-virtual-dtor -march=native ${OpenMP_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -Wall -Werror -Wno-error=unused-function -Wno-error=sign-compare -Wno-int-in-bool-context -Werror=reorder  ${STD_FLAG} ${FP_PRECISION_FLAG} ${OpenMP_CXX_FLAGS}")
+
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -g -Wall -Werror -DNDEBUG ${STD_FLAG} ${FP_PRECISION_FLAG} -march=native ${OpenMP_CXX_FLAGS}")
 
 
 set(EXTERNAL_INSTALL_DIR ${CMAKE_BINARY_DIR}/external_install)

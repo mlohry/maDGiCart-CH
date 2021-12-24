@@ -1,7 +1,10 @@
-
 #pragma once
 
-#include "strided_array.hpp"
+#include <vector>
+#include <memory>
+#include <cassert>
+
+#include "managed_array_owner.hpp"
 
 
 //template <template<class> class ArrayType, class ScalarType>
@@ -13,11 +16,11 @@ class ArraySet
       const ManagedArrayOwner&  owner,
       const std::string&        array_name,
       int_t                     nvecs,
-      const StridedMatrixShape& shape)
+      int_t                     vecsize)
   {
     for (int_t i = 0; i < nvecs; ++i) {
       vecs_.push_back(
-          std::make_unique<ArrayType>(owner, array_name + "Vec" + std::to_string(i), shape));
+          std::make_unique<ArrayType>(owner, array_name + "Vec" + std::to_string(i), vecsize));
     }
   }
 
@@ -42,8 +45,6 @@ class ArraySet
     return *vecs_[i];
   }
 
-
-  using ScalarType = typename ArrayType::ScalarType;
 
   int_t nvecs() const { return static_cast<int_t>(vecs_.size()); }
 
