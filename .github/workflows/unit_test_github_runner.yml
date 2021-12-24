@@ -1,4 +1,4 @@
-name: Unit testing - Ubuntu 20.04 - GitHub runner - Superbuild
+name: Unit testing - Ubuntu 20.04 - GitHub runner
 
 on: [pull_request, workflow_dispatch]
 
@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: configure
-        run: mkdir build && cd build && cmake ..
+        run: sudo apt-get install -y libboost-all-dev && mkdir build && cd build && cmake ..
       - name: build
         run: cmake --build build --target all -j8
       - name: run tests
