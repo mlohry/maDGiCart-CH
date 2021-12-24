@@ -7,8 +7,9 @@
 Using an out-of-source build, use cmake:
 
     cmake ./path/to/maDiCart-CH
+    make -j
     
-Compile using cmake and optionally one of `-DMADG_USE_SERIAL=On`, `-DMADG_USE_OPENMP=On`, or `-DMADG_USE_GPU=On` where serial is the default.
+In the cmake command line one can optionally specify one of `-DMADG_USE_SERIAL=On`, `-DMADG_USE_OPENMP=On`, or `-DMADG_USE_GPU=On` where serial is the default.
 
 Then run unit tests and a sample solution with
 
