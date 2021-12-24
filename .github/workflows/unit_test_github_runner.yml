@@ -1,0 +1,19 @@
+name: Unit testing - Ubuntu 20.04 - GitHub runner - Superbuild
+
+on: [pull_request, workflow_dispatch]
+
+jobs:
+  build-github-runner-and-run:
+
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v1
+      - name: configure
+        run: mkdir build && cd build && cmake ..
+      - name: build
+        run: cmake --build build --target all -j8
+      - name: run tests
+        run: |
+          cd build
+          ctest -VV -R unit_testing
