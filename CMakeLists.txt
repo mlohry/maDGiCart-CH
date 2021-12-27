@@ -35,7 +35,6 @@ endif()
 
 if (MADG_USE_OPENMP)
   add_definitions(-DMADG_USE_OPENMP)
-  add_definitions(-D_OPENMP)
   set(MADG_USE_SERIAL OFF)
   MESSAGE(STATUS "MADG_USE_OPENMP specified, setting MADG_USE_SERIAL Off.")
   find_package(OpenMP REQUIRED)
