@@ -24,7 +24,6 @@ class Options
   const std::string& config_file() const { return config_file_; }
   const std::string& log_file() const { return log_file_; }
   const std::string& solution_output_file() const { return solution_output_file_; }
-  bool interactive_plots() const { return interactive_plots_; }
 
   // governing equations options
   const std::string& equation_type() const { return equation_type_; }
@@ -57,7 +56,6 @@ class Options
   std::string config_file_;
   std::string log_file_;
   std::string solution_output_file_;
-  bool interactive_plots_;
 
   // governing_equations options
   std::string         equation_type_;
