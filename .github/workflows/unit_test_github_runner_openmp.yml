@@ -1,4 +1,4 @@
-name: Testing - OpenMP
+name: g++9.3.0 - Build & Test - OpenMP
 
 on: [pull_request, workflow_dispatch]
 
