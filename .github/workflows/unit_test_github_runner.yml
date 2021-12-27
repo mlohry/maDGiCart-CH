@@ -1,4 +1,4 @@
-name: Build & Test - Serial
+name: g++9.3.0 - Build & Test - Serial
 
 on: [pull_request, workflow_dispatch]
 
