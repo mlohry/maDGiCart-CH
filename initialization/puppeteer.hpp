@@ -35,6 +35,4 @@ class Puppeteer {
   void attachTimeObservers(TimeIntegrator&);
   void attachResidualObservers(TimeIntegrator&, TimeIntegrableRHS&);
   void attachSolutionObservers(TimeIntegrator&, Discretization2DCart&, TimeIntegrableRHS&);
-
-  void plotSolution(const SolutionState&);
 };

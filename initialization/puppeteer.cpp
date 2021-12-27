@@ -1,6 +1,6 @@
 #include "puppeteer.hpp"
 
-#include <matplot/matplot.h>
+#include "file_io/vtk_solution_writer.hpp"
 #include "governing_equations/cahn_hilliard/cahn_hilliard_2d_fd.hpp"
 #include "governing_equations/cahn_hilliard/cahn_hilliard_initial_conditions.hpp"
 #include "governing_equations/cahn_hilliard/cahn_hilliard_parameters.hpp"
@@ -41,6 +41,7 @@ Puppeteer::Puppeteer(const std::vector<std::string>& cmd_line)
 
 Puppeteer::~Puppeteer() = default;
 
+
 void
 Puppeteer::run()
 {
@@ -49,46 +50,18 @@ Puppeteer::run()
 
   time_integrator_->solve(*rhs_, *initial_conditions_);
 
-  if (Options::get().interactive_plots()) {
-    plotSolution(time_integrator_->getCurrentSolutionState());
-  }
+  const std::string vtk_output = [&]() {
+    if (Options::get().solution_output_file().empty()) {
+      return Options::get().log_file();
+    }
+    return Options::get().solution_output_file();
+  }();
+
+  write_solution_to_vtk(time_integrator_->getCurrentSolutionState(), *geom_, vtk_output);
 
   Logger::get().InfoMessage(Profiler::get().finalize());
 }
 
-void
-Puppeteer::plotSolution(const SolutionState& state)
-{
-  using vec2d = std::vector<std::vector<double>>;
-  const int N = geom_->ni();
-
-  vec2d X, Y, Z;
-  X.resize(N);
-  Y.resize(N);
-  Z.resize(N);
-  for (int i = 0; i < N; ++i) {
-    X[i].resize(N);
-    Y[i].resize(N);
-    Z[i].resize(N);
-  }
-
-  auto z = read_access_host(dynamic_cast<const CahnHilliardState&>(state).c());
-
-  for (int i = 0; i < N; ++i) {
-    for (int j = 0; j < N; ++j) {
-      X[i][j] = i;
-      Y[i][j] = j;
-      Z[i][j] = z(i, j);
-    }
-  }
-
-  matplot::figure();
-  matplot::contour(X, Y, Z);  // contourf segfaults for some reason?
-  matplot::xlabel("X");
-  matplot::ylabel("Y");
-
-  matplot::show();
-}
 
 std::unique_ptr<Discretization2DCart>
 Puppeteer::geomFactory()

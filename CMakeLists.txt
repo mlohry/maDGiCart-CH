@@ -95,6 +95,7 @@ link_directories(${EXTERNAL_INSTALL_DIR}/lib)
 
 set(LIBTYPE "SHARED")
 
+add_subdirectory(file_io)
 add_subdirectory(logger)
 add_subdirectory(data_structures)
 add_subdirectory(governing_equations)
@@ -132,7 +133,7 @@ add_executable(maDGiCart
         maDGiCart_main.cpp
         typedefs.hpp)
 
-target_link_libraries(maDGiCart ${maDG_library_links} discretization ${EXTERNAL_INSTALL_DIR}/lib/libmatplot.so RAJA)
+target_link_libraries(maDGiCart ${maDG_library_links} discretization RAJA)
 
 enable_testing()
 add_subdirectory(testing)
