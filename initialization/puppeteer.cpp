@@ -12,6 +12,7 @@
 #include "time_stepping/time_integrator.hpp"
 #include "time_stepping/time_integrator_options.hpp"
 #include "utils/registry.hpp"
+#include "file_io/vtk_solution_writer.hpp"
 
 
 Puppeteer::Puppeteer(const std::vector<std::string>& cmd_line)
@@ -52,6 +53,15 @@ Puppeteer::run()
   if (Options::get().interactive_plots()) {
     plotSolution(time_integrator_->getCurrentSolutionState());
   }
+
+  std::string vtk_output;
+  if (Options::get().solution_output_file().empty()){
+    vtk_output = Options::get().log_file();
+  } else {
+    vtk_output = Options::get().solution_output_file();
+  }
+
+  write_solution_to_vtk(time_integrator_->getCurrentSolutionState(), *geom_, vtk_output);
 
   Logger::get().InfoMessage(Profiler::get().finalize());
 }

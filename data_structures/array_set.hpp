@@ -5,6 +5,7 @@
 #include <cassert>
 
 #include "managed_array_owner.hpp"
+#include "typedefs.hpp"
 
 
 //template <template<class> class ArrayType, class ScalarType>

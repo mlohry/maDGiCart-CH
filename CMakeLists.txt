@@ -95,6 +95,7 @@ link_directories(${EXTERNAL_INSTALL_DIR}/lib)
 
 set(LIBTYPE "SHARED")
 
+add_subdirectory(file_io)
 add_subdirectory(logger)
 add_subdirectory(data_structures)
 add_subdirectory(governing_equations)
