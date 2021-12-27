@@ -22,7 +22,3 @@ jobs:
           cmake -DMADG_USE_GPU=On -DCMAKE_CUDA_COMPILER=/usr/local/cuda-11.5/bin/nvcc -DCMAKE_CUDA_ARCHITECTURES="35;80" ..
       - name: build
         run: CUDACXX=/usr/local/cuda-11.5/bin/nvcc cmake --build build --target all -j8
-      - name: run tests
-        run: |
-          cd build
-          ctest -VV -R unit_testing
