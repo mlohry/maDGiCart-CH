@@ -1,4 +1,4 @@
-name: Testing - OpenMP
+name: Build & Test - OpenMP
 
 on: [pull_request, workflow_dispatch]
 
