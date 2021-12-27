@@ -19,9 +19,9 @@ jobs:
           sudo apt-get install -y libboost-log-dev libboost-program-options-dev libboost-regex-dev libboost-thread-dev libboost-filesystem-dev
           mkdir build
           cd build
-          cmake -DMADG_USE_GPU=On -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc -DCMAKE_CUDA_ARCHITECTURES="35;80" ..
+          cmake -DMADG_USE_GPU=On -DCMAKE_CUDA_COMPILER=/usr/local/cuda-11.5/bin/nvcc -DCMAKE_CUDA_ARCHITECTURES="35;80" ..
       - name: build
-        run: cmake --build build --target all -j8
+        run: CUDACXX=/usr/local/cuda-11.5/bin/nvcc cmake --build build --target all -j8
       - name: run tests
         run: |
           cd build
