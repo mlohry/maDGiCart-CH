@@ -59,3 +59,11 @@ Run unit tests and a sample solution:
 
     ./unit_testing
     ./maDGiCart
+
+
+## Plotting
+
+Solutions are output to a VTK-standard `.vts` structured grid format. This can be loaded directly into programs such as Paraview, or with the included `plot_vts.py` script which utilizes the `pyvista` VTK frontend:
+
+    python3 plot_vts.py outputfile.vts
+
