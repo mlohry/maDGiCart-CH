@@ -25,8 +25,6 @@ where other OS's should be similar. Using an out-of-source build, use cmake:
 
     cmake ./path/to/maDiCart-CH
     make -j
-    
-In the cmake command line one can optionally specify one of `-DMADG_USE_SERIAL=On`, `-DMADG_USE_OPENMP=On`, or `-DMADG_USE_GPU=On` where serial is the default.
 
 Then run unit tests and a sample solution with
 
@@ -61,4 +59,3 @@ Run unit tests and a sample solution:
 
     ./unit_testing
     ./maDGiCart
-    
