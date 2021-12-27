@@ -1,6 +1,8 @@
 # maDGiCart-CH
 
-![unit_test_ubuntu_20.04_github_runner](https://github.com/mlohry/maDGiCart-CH/actions/workflows/unit_test_github_runner.yml/badge.svg?branch=master)
+![unit_test_ubuntu_20.04_github_runner_serial](https://github.com/mlohry/maDGiCart-CH/actions/workflows/unit_test_github_runner.yml/badge.svg?branch=master)
+
+![unit_test_ubuntu_20.04_github_runner_openmp](https://github.com/mlohry/maDGiCart-CH/actions/workflows/unit_test_github_runner_openmp.yml/badge.svg?branch=master)
 
 ## Compiling
 
