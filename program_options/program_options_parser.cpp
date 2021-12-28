@@ -87,10 +87,7 @@ ProgramOptionsParser::ProgramOptionsParser()
       "Solution output file name, without file extension.")(
       "log_file",
       po::value<std::string>(&Options::get().log_file_)->default_value("maDGiCart"),
-      "Solution output file name, without file extension.")(
-      "interactive_plots",
-      po::value<bool>(&Options::get().interactive_plots_)->default_value(true),
-      "Use interactive plots.");
+      "Solution output file name, without file extension.");
 
   physics.add_options()(
       "equation_type",
