@@ -34,27 +34,47 @@ Then run unit tests and a sample solution with
     ./maDGiCart
 
 
-### Docker build - CPU
+### Docker build
 
-For consistent gcc CPU-based builds, a [Dockerfile](Dockerfile.gcc) is provided. The following workflow will build and run maDGiCart-CH in a container.
+For consistent builds, a [Dockerfile for CPU gcc builds](Dockerfile.gcc) and a [Dockerfile for GPU CUDA builds](Dockerfile.cuda) are provided. The following workflow will build and run maDGiCart-CH in a container.
 
 First, clone the repository on the host and make a build directory:
 
     git clone git@github.com:mlohry/maDGiCart-CH.git
     mkdir maDGiCart-CH-build
 
-Build the image with tagged name `madg-gcc`:
+Build the GCC image with tagged name `madg-gcc` for CPU:
 
     docker build -f ./maDGiCart-CH/Dockerfile.gcc  -t madg-gcc .
+    
+or build the CUDA image with tagged name `madg-cuda` for GPU:
+
+    docker build -f ./maDGiCart-CH/Dockerfile.cuda  -t madg-cuda .
 
 Start the image with the appropriate directories mounted and start a bash shell:
 
-    docker run --rm -it --mount type=bind,source=$PWD/maDGiCart-CH,target=/maDGiCart-CH --mount type=bind,source=$PWD/maDGiCart-CH-build,target=/maDGiCart-CH-build madg-gcc bash
+    docker run --rm -it \
+    --mount type=bind,source=$PWD/maDGiCart-CH,target=/maDGiCart-CH \
+    --mount type=bind,source=$PWD/maDGiCart-CH-build,target=/maDGiCart-CH-build \
+    madg-gcc bash
+    
+for the CPU build, or for the GPU build (note the --gpus all option)
 
-Compile as above:
+    docker run --gpus all --rm -it \
+    --mount type=bind,source=$PWD/maDGiCart-CH,target=/maDGiCart-CH \
+    --mount type=bind,source=$PWD/maDGiCart-CH-build,target=/maDGiCart-CH-build \
+    madg-cuda bash
+
+Compile as above for CPU:
 
     cd /maDGiCart-CH-build
-    cmake /maDGiCart-CH -DMADG_USE_OPENMP=On  # optionally enable OpenMP
+    cmake /maDGiCart-CH -DMADG_USE_OPENMP=On # or -DMADG_USE_SERIAL=On
+    make -j 8
+    
+or for GPU:
+
+    cd /maDGiCart-CH-build
+    cmake /maDGiCart-CH -DMADG_USE_GPU=On
     make -j 8
 
 Run unit tests and a sample solution:
