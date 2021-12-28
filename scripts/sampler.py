@@ -36,7 +36,6 @@ def main( topdir : str , builddir : str , outdir : str , nsamples : int ):
         sigma = compute_sigma_from_X_and_m( Xi , mi )
 
         subprocess.run( [ topdir + '/' + builddir + "/maDGiCart" ,
-                        "--interactive_plots" , 'false' ,  
                         "--m"     , str(mi) ,
                         "--eps2"  , str(eps2) ,
                         "--sigma" , str(sigma) ] )
