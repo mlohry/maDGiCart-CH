@@ -38,27 +38,24 @@ Then run unit tests and a sample solution with
 
 For consistent builds, a [Dockerfile for CPU gcc builds](Dockerfile.gcc) and a [Dockerfile for GPU CUDA builds](Dockerfile.cuda) are provided. The following workflow will build and run maDGiCart-CH in a container.
 
-First, clone the repository on the host and make a build directory:
+One time only (assuming the docker images are cached), build either or both docker images for the CPU or GPU builds:
+
+    docker build -f ./maDGiCart-CH/Dockerfile.gcc  -t madg-gcc .
+    docker build -f ./maDGiCart-CH/Dockerfile.cuda  -t madg-cuda .
+
+Clone the repository on the host and make a build directory:
 
     git clone git@github.com:mlohry/maDGiCart-CH.git
     mkdir maDGiCart-CH-build
 
-Build the GCC image with tagged name `madg-gcc` for CPU:
-
-    docker build -f ./maDGiCart-CH/Dockerfile.gcc  -t madg-gcc .
-    
-or build the CUDA image with tagged name `madg-cuda` for GPU:
-
-    docker build -f ./maDGiCart-CH/Dockerfile.cuda  -t madg-cuda .
-
-Start the image with the appropriate directories mounted and start a bash shell:
+Start the image with the appropriate directories mounted and start a bash shell for the CPU build:
 
     docker run --rm -it \
     --mount type=bind,source=$PWD/maDGiCart-CH,target=/maDGiCart-CH \
     --mount type=bind,source=$PWD/maDGiCart-CH-build,target=/maDGiCart-CH-build \
     madg-gcc bash
     
-for the CPU build, or for the GPU build (note the --gpus all option)
+or for the GPU build (note the --gpus all option)
 
     docker run --gpus all --rm -it \
     --mount type=bind,source=$PWD/maDGiCart-CH,target=/maDGiCart-CH \
