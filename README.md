@@ -34,27 +34,44 @@ Then run unit tests and a sample solution with
     ./maDGiCart
 
 
-### Docker build - CPU
+### Docker build
 
-For consistent gcc CPU-based builds, a [Dockerfile](Dockerfile.gcc) is provided. The following workflow will build and run maDGiCart-CH in a container.
+For consistent builds, a [Dockerfile for CPU gcc builds](Dockerfile.gcc) and a [Dockerfile for GPU CUDA builds](Dockerfile.cuda) are provided. The following workflow will build and run maDGiCart-CH in a container.
 
-First, clone the repository on the host and make a build directory:
+One time only (assuming the docker images are cached), build either or both docker images for the CPU or GPU builds:
+
+    docker build -f ./maDGiCart-CH/Dockerfile.gcc  -t madg-gcc .
+    docker build -f ./maDGiCart-CH/Dockerfile.cuda  -t madg-cuda .
+
+Clone the repository on the host and make a build directory:
 
     git clone git@github.com:mlohry/maDGiCart-CH.git
     mkdir maDGiCart-CH-build
 
-Build the image with tagged name `madg-gcc`:
+Start the image with the appropriate directories mounted and start a bash shell for the CPU build:
 
-    docker build -f ./maDGiCart-CH/Dockerfile.gcc  -t madg-gcc .
+    docker run --rm -it \
+    --mount type=bind,source=$PWD/maDGiCart-CH,target=/maDGiCart-CH \
+    --mount type=bind,source=$PWD/maDGiCart-CH-build,target=/maDGiCart-CH-build \
+    madg-gcc bash
+    
+or for the GPU build (note the --gpus all option)
 
-Start the image with the appropriate directories mounted and start a bash shell:
+    docker run --gpus all --rm -it \
+    --mount type=bind,source=$PWD/maDGiCart-CH,target=/maDGiCart-CH \
+    --mount type=bind,source=$PWD/maDGiCart-CH-build,target=/maDGiCart-CH-build \
+    madg-cuda bash
 
-    docker run --rm -it --mount type=bind,source=$PWD/maDGiCart-CH,target=/maDGiCart-CH --mount type=bind,source=$PWD/maDGiCart-CH-build,target=/maDGiCart-CH-build madg-gcc bash
-
-Compile as above:
+Compile as above for CPU:
 
     cd /maDGiCart-CH-build
-    cmake /maDGiCart-CH -DMADG_USE_OPENMP=On  # optionally enable OpenMP
+    cmake /maDGiCart-CH -DMADG_USE_OPENMP=On # or -DMADG_USE_SERIAL=On
+    make -j 8
+    
+or for GPU:
+
+    cd /maDGiCart-CH-build
+    cmake /maDGiCart-CH -DMADG_USE_GPU=On
     make -j 8
 
 Run unit tests and a sample solution:
