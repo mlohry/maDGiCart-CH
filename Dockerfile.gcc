@@ -9,4 +9,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
     libboost-filesystem-dev \
     cmake \
     g++ \
+    python3.8 \
+    python3-pip \
  && rm -rf /var/lib/apt/lists/* 
+ RUN pip3 install numpy
