@@ -79,7 +79,27 @@ Run unit tests and a sample solution:
     ./unit_testing
     ./maDGiCart
 
+### Singularity build from Docker
 
+If you wish to build and run using Singularity, you can convert the Docker image (built as described above) using this workflow.
+
+Get the image id from this command:
+
+    docker images
+
+Save that image as a tar file (say it was id 9c27e219663c):
+
+    docker save 9c27e219663c -o myimage.tar
+
+Build the singularity image:
+
+    singularity build myimage.sif docker-archive://myimage.tar
+
+The resulting .sif image can be used with singularity. Note that you will need to set the environment variable LC_ALL=C. For example, you would start a singularity shell as follows:
+
+    singularity shell --nv --env LC_ALL=C myimage.sif
+
+Inside this shell, you would build using cmake/make in the same way as described in the Docker section.
 ## Plotting
 
 Solutions are output to a VTK-standard `.vts` structured grid format. This can be loaded directly into programs such as Paraview, or with the included `plot_vts.py` script which utilizes the `pyvista` VTK frontend:
