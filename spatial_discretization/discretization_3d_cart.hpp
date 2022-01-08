@@ -17,7 +17,7 @@ class Discretization3DCart : public ManagedArrayOwner {
   int ni() const { return ni_; }
   int nhalo() const { return nhalo_; }
   double dx() const { return dx_; }
-  int nInteriorPoints() const { return ni()*ni(); }
+  int nInteriorPoints() const { return ni()*ni()*ni(); }
 
   void applyPeriodicBoundaryConditions(ManagedArray3D<real_wp>& state) const;
 

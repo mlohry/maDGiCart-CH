@@ -123,23 +123,23 @@ Discretization3DCart::applyPeriodicBoundaryConditions(ManagedArray3D<real_wp>& s
     }
   });
 
-  // corner diagonals aligned with k
-  maDGForAll(k, 0, nks, {
-    for (int i = -nhalos; i < 0; ++i) {
-      for (int j = -nhalos; j < 0; ++j) {
-        state(i, j, k) = state(i + nis, j + njs, k);
-      }
-      for (int j = njs; j < njs + nhalos; ++j) {
-        state(i, j, k) = state(i + nis, j - njs, k);
-      }
-    }
-    for (int i = nis; i < nis + nhalos; ++i) {
-      for (int j = -nhalos; j < 0; ++j) {
-        state(i, j, k) = state(i - nis, j + njs, k);
-      }
-      for (int j = njs; j < njs + nhalos; ++j) {
-        state(i, j, k) = state(i - nis, j - nis, k);
-      }
-    }
-  });
+//  // corner diagonals aligned with k
+//  maDGForAll(k, 0, nks, {
+//    for (int i = -nhalos; i < 0; ++i) {
+//      for (int j = -nhalos; j < 0; ++j) {
+//        state(i, j, k) = state(i + nis, j + njs, k);
+//      }
+//      for (int j = njs; j < njs + nhalos; ++j) {
+//        state(i, j, k) = state(i + nis, j - njs, k);
+//      }
+//    }
+//    for (int i = nis; i < nis + nhalos; ++i) {
+//      for (int j = -nhalos; j < 0; ++j) {
+//        state(i, j, k) = state(i - nis, j + njs, k);
+//      }
+//      for (int j = njs; j < njs + nhalos; ++j) {
+//        state(i, j, k) = state(i - nis, j - nis, k);
+//      }
+//    }
+//  });
 }
