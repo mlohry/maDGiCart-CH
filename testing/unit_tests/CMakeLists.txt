@@ -3,7 +3,7 @@ add_executable(unit_testing
         spatial_discretization/discretization_2d_cart_test.cpp
         governing_equations/cahn_hilliard_2d_fd_test.cpp
         time_stepping/cahn_hilliard_regression_test.cpp
-        )
+        spatial_discretization/discretization_3d_cart_test.cpp)
 
 add_dependencies(unit_testing ${external_libraries})
 

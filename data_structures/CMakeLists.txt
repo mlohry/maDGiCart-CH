@@ -1,6 +1,5 @@
 set(data_structures_src
-        memory_manager.cpp
-        )
+        memory_manager.cpp)
 
 add_library(data_structures ${LIBTYPE} ${data_structures_src})
 

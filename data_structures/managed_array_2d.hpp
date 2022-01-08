@@ -46,7 +46,7 @@ class ManagedArray2D : private NonCopyable {
   {
   }
 
-  virtual ~ManagedArray2D() {}
+  virtual ~ManagedArray2D() = default;
 
 
   auto readWriteHost() { return ManagedArray2DAccessor<T>(asArray().readWriteHost().data(), nhalo_, nihalo_, njhalo_); }
@@ -90,8 +90,8 @@ class ManagedArray2DOwning final : public ManagedArray2D<T> {
   ~ManagedArray2DOwning() = default;
 
 
-  const ManagedArray<T>& asArray() const { return array_; }
-  ManagedArray<T>&       asArray() { return array_; }
+  const ManagedArray<T>& asArray() const override { return array_; }
+  ManagedArray<T>&       asArray() override { return array_; }
 
 
  private:
@@ -111,8 +111,8 @@ class ManagedArray2DNonOwning final : public ManagedArray2D<T> {
 
   ~ManagedArray2DNonOwning() = default;
 
-  const ManagedArray<T>& asArray() const { return borrowed_array_; }
-  ManagedArray<T>&       asArray() { return borrowed_array_; }
+  const ManagedArray<T>& asArray() const override { return borrowed_array_; }
+  ManagedArray<T>&       asArray() override { return borrowed_array_; }
 
 
  private:
