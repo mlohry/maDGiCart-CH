@@ -1,6 +1,6 @@
 set(discretization_src
         discretization_2d_cart.cpp
-        discretization_3d_cart.cpp discretization_3d_cart.hpp)
+        discretization_3d_cart.cpp)
 
 
 
