@@ -27,10 +27,6 @@ class CahnHilliard2DFD : public TimeIntegrableRHS {
 
   std::vector<std::string> equationNames() const override { return {{"c"}}; }
 
-  void setRandomInitialCondition(SolutionState& state) const;
-
-  std::map<std::string, double> solutionReport(const SolutionState& state, const SolutionState& residual);
-
   const IndexArray& interiorIndices() const override { return geom_.interiorIndices(); }
 
  private:
