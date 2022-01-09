@@ -68,7 +68,6 @@ void CahnHilliard3DFD::evalRHSImpl(const SolutionState& flovars, double time, So
 
     const real_wp eps2 = this->eps2();
 
-
     maDGForAll(ii, 0, idx.size(), {
       const int i = idx[ii];
       rhs[i]      = -eps2 * del4[i] + del2[i] - sigterm[i];

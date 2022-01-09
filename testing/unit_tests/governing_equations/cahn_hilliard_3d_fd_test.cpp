@@ -7,6 +7,12 @@
 #include "spatial_discretization/discretization_3d_cart.hpp"
 #include "testing/utils/order_of_accuracy.hpp"
 
+#include "file_io/vtk_solution_writer.hpp"
+#include "governing_equations/cahn_hilliard/cahn_hilliard_initial_conditions.hpp"
+#include "governing_equations/residual_calculator.hpp"
+#include "program_options/program_options_parser.hpp"
+#include "time_stepping/rk3ssp.hpp"
+#include "testing/command_line.hpp"
 
 TEST(CahnHilliard3D, RHSEvaluation)
 {
@@ -57,9 +63,6 @@ TEST(CahnHilliard3D, RHSEvaluation)
       const real_wp cosy = cos(y(i, j, k));
       const real_wp cosz = cos(z(i, j, k));
 
-
-      //      f(i, j, k) = sin(x(i, j, k)) * cos(y(i, j, k)) * cos(z(i, j, k));
-
       // laplacian (c^3 -c)
       // clang-format off
       const real_wp expected_laplacian_c3 =
@@ -89,4 +92,39 @@ TEST(CahnHilliard3D, RHSEvaluation)
 
   std::cout << "cartesian finite difference Cahn-Hilliard error:\n" << accuracy_chrhs << "\n";
   EXPECT_NEAR(accuracy_chrhs.getConvergenceRate().at(expected_order).back(), expected_order, 0.01);
+}
+
+
+TEST(CahnHilliard3D, TestSolve)
+{
+  ProgramOptionsParser     parser;
+  std::vector<std::string> cmd = cmdline;
+  cmd.push_back("--max_time_steps=10000");
+  parser.parseInputOptions(cmd);
+
+  const int N = 128;
+
+  Discretization3DCart   geom(N, 2, -M_PI, M_PI, -M_PI, -M_PI);
+  CahnHilliardParameters ch_params;
+  CahnHilliard3DFD       ch_rhs(geom, ch_params);
+
+  auto state     = ch_rhs.createSolutionState();
+  auto dstate_dt = ch_rhs.createSolutionState();
+
+  RK3SSP time_integrator(ch_rhs, getTimeOptionsUsingGlobalOptions());
+
+  time_integrator.registerObserver(Event::TimeStepComplete, [&]() {
+    Logger::get().setResidualMonitor(residual_calculator(ch_rhs, time_integrator.getCurrentResidual()));
+  });
+
+  time_integrator.registerObserver(
+      Event::TimeStepComplete, [&]() { Logger::get().setTimeMonitor(time_integrator.getIterationStatus()); });
+
+  time_integrator.registerObserver(Event::TimeStepComplete, [&]() { Logger::get().updateLog(); });
+
+  CahnHilliardInitialConditions init_cond(ch_params);
+
+  time_integrator.solve(ch_rhs, init_cond);
+
+  write_solution_to_vtk(time_integrator.getCurrentSolutionState(), geom, "ch3dtest");
 }
