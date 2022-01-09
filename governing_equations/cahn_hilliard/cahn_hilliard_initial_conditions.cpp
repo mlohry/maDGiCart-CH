@@ -43,6 +43,6 @@ CahnHilliardInitialConditions::set(const TimeIntegrableRHS& rhs, SolutionState& 
   Logger::get().InfoMessage("RNG initial conditions have mean " + std::to_string(mean) + ", renormalizing.");
 
   for (int i = 0; i < idx.size(); ++i) {
-    c[idx[i]] -= mean;
+    c[idx[i]] -= (mean-m_);
   }
 }
