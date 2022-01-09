@@ -27,8 +27,22 @@ CahnHilliardInitialConditions::set(const TimeIntegrableRHS& rhs, SolutionState& 
   /**
    * Would prefer to use a maDGForAllHost here but std::uniform_real_distribution lambda copy
    * has to be mutable.
+   *
+   * Additionally do a Kahan summation to compute the average which will differ from m_ due to RNG.
    */
+  double sum = 0;
+  double tmp = 0;
   for (int i = 0; i < idx.size(); ++i) {
-    c[idx[i]] = dist(gen);
+    c[idx[i]] = m_ + dist(gen);
+    const double y = c[idx[i]] - tmp;
+    const double t = sum + y;
+    tmp = (t-sum) -y;
+    sum = t;
+  }
+  const double mean = sum / double(idx.size());
+  Logger::get().InfoMessage("RNG initial conditions have mean " + std::to_string(mean) + ", renormalizing.");
+
+  for (int i = 0; i < idx.size(); ++i) {
+    c[idx[i]] -= mean;
   }
 }

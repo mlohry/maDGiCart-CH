@@ -7,7 +7,7 @@ int main(int argc, char* argv[])
 {
   ::testing::InitGoogleTest(&argc, argv);
 
-  // Logger::get().disable();
+  Logger::get().disable();
 
   // make command line arguments available to tests.
   std::vector<std::string> cmd_line(argv + 1, argv + argc);
