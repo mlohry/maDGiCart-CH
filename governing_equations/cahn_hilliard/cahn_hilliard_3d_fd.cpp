@@ -1,21 +1,19 @@
-#include "cahn_hilliard_2d_fd.hpp"
+#include "cahn_hilliard_3d_fd.hpp"
 
-#include <random>
+#include "logger/logger.hpp"
 
-
-CahnHilliard2DFD::CahnHilliard2DFD(Discretization2DCart& geom, const CahnHilliardParameters& params)
-    : CahnHilliardBase(params), geom_(geom)
+CahnHilliard3DFD::CahnHilliard3DFD(Discretization3DCart& geom, const CahnHilliardParameters& params)
+: CahnHilliardBase(params), geom_(geom)
 {
 }
 
 
-void
-CahnHilliard2DFD::evalRHSImpl(const SolutionState& flovars, double time, SolutionState& rhs)
+void CahnHilliard3DFD::evalRHSImpl(const SolutionState& flovars, double time, SolutionState& rhs)
 {
   profile();
-  const CahnHilliardState& state = dynamic_cast<const CahnHilliardState&>(flovars);
+  const CahnHilliardState3D& state = dynamic_cast<const CahnHilliardState3D&>(flovars);
 
-  geom_.applyPeriodicBoundaryConditions(const_cast<ManagedArray2DNonOwning<real_wp>&>(state.c()));
+  geom_.applyPeriodicBoundaryConditions(const_cast<ManagedArray3DNonOwning<real_wp>&>(state.c()));
 
   /**
    * Compute  laplacian(u*c^3 -b*c)
@@ -55,9 +53,8 @@ CahnHilliard2DFD::evalRHSImpl(const SolutionState& flovars, double time, Solutio
     });
   }
 
-
   {
-    CahnHilliardState& dstate_dt = dynamic_cast<CahnHilliardState&>(rhs);
+    CahnHilliardState3D& dstate_dt = dynamic_cast<CahnHilliardState3D&>(rhs);
     {
       auto r = write_access(dstate_dt.c().asArray());
       maDGForAll(i, 0, r.size(), { r[i] = real_wp(0); });
@@ -70,7 +67,6 @@ CahnHilliard2DFD::evalRHSImpl(const SolutionState& flovars, double time, Solutio
     auto sigterm = read_access(linear_term->asArray());
 
     const real_wp eps2 = this->eps2();
-
 
     maDGForAll(ii, 0, idx.size(), {
       const int i = idx[ii];

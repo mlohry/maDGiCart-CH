@@ -33,6 +33,10 @@ Then run unit tests and a sample solution with
     ./unit_testing
     ./maDGiCart
 
+A longer running 3D example solution can be run with
+
+    ./maDGiCart --dimension=3 --max_time_steps=10000 --eps2=0.0019974621629115655 --sigma=3.5306509073075123 --time_step_size=3e-5 --domain_x_begin=-3.14159 --domain_x_end=3.14159
+
 
 ### Docker build
 
@@ -86,3 +90,7 @@ Solutions are output to a VTK-standard `.vts` structured grid format. This can b
 
     python3 plot_vts.py outputfile.vts
 
+Convergence history and configuration options are exported to `*.log` files which can be plotted with
+
+    python3 /path/to/maDGiCart-CH/plot_history.py /path/to/logfile.log
+     

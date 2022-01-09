@@ -2,6 +2,7 @@
 
 #include "file_io/vtk_solution_writer.hpp"
 #include "governing_equations/cahn_hilliard/cahn_hilliard_2d_fd.hpp"
+#include "governing_equations/cahn_hilliard/cahn_hilliard_3d_fd.hpp"
 #include "governing_equations/cahn_hilliard/cahn_hilliard_initial_conditions.hpp"
 #include "governing_equations/cahn_hilliard/cahn_hilliard_parameters.hpp"
 #include "governing_equations/cahn_hilliard/cahn_hilliard_solution_monitor.hpp"
@@ -9,6 +10,7 @@
 #include "governing_equations/residual_calculator.hpp"
 #include "logger/logger.hpp"
 #include "spatial_discretization/discretization_2d_cart.hpp"
+#include "spatial_discretization/discretization_3d_cart.hpp"
 #include "time_stepping/time_integrator.hpp"
 #include "time_stepping/time_integrator_options.hpp"
 #include "utils/registry.hpp"
@@ -63,27 +65,56 @@ Puppeteer::run()
 }
 
 
-std::unique_ptr<Discretization2DCart>
+std::unique_ptr<SpatialDiscretization>
 Puppeteer::geomFactory()
 {
   const int nhalo = 2;  // should be dependent on equation and order / stencil size
-  return std::make_unique<Discretization2DCart>(
-      Options::get().domain_resolution(),
-      nhalo,
-      Options::get().domain_x_begin(),
-      Options::get().domain_x_end(),
-      Options::get().domain_x_begin());
+
+  const int dim = Options::get().dimension();
+  switch (dim) {
+    case 2:
+      return std::make_unique<Discretization2DCart>(
+          Options::get().domain_resolution(),
+          nhalo,
+          Options::get().domain_x_begin(),
+          Options::get().domain_x_end(),
+          Options::get().domain_x_begin());
+    case 3:
+      return std::make_unique<Discretization3DCart>(
+          Options::get().domain_resolution(),
+          nhalo,
+          Options::get().domain_x_begin(),
+          Options::get().domain_x_end(),
+          Options::get().domain_x_begin(),
+          Options::get().domain_x_begin());
+    default:
+      Logger::get().FatalMessage("Only dimensions 2 and 3 supported.");
+  }
+  return nullptr;
 }
 
 
 std::unique_ptr<TimeIntegrableRHS>
-Puppeteer::rhsFactory(Discretization2DCart& geom)
+Puppeteer::rhsFactory(SpatialDiscretization& geom)
 {
   Logger::get().FatalAssert(
       Options::get().equation_type() == "cahn-hilliard", "Only equation_type=cahn-hilliard currently supported.");
 
   CahnHilliardParameters params;
-  return std::make_unique<CahnHilliard2DFD>(geom, params);
+
+  const int dim = Options::get().dimension();
+  switch (dim) {
+    case 2:
+      return std::make_unique<CahnHilliard2DFD>(dynamic_cast<Discretization2DCart&>(geom), params);
+      ;
+    case 3:
+      return std::make_unique<CahnHilliard3DFD>(dynamic_cast<Discretization3DCart&>(geom), params);
+      ;
+    default:
+      Logger::get().FatalMessage("Only dimensions 2 and 3 supported.");
+  }
+
+  return nullptr;
 }
 
 
@@ -124,10 +155,23 @@ Puppeteer::attachResidualObservers(TimeIntegrator& time_integrator, TimeIntegrab
 }
 
 void
-Puppeteer::attachSolutionObservers(TimeIntegrator& time_integrator, Discretization2DCart& geom, TimeIntegrableRHS& rhs)
+Puppeteer::attachSolutionObservers(TimeIntegrator& time_integrator, SpatialDiscretization& geom, TimeIntegrableRHS& rhs)
 {
-  time_integrator.registerObserver(Event::TimeStepComplete, [&]() {
-    Logger::get().setSolutionMonitor(
-        cahn_hilliard_solution_monitor(rhs, geom, time_integrator.getCurrentSolutionState()));
-  });
+  const int dim = Options::get().dimension();
+  switch (dim) {
+    case 2:
+      time_integrator.registerObserver(Event::TimeStepComplete, [&]() {
+        Logger::get().setSolutionMonitor(cahn_hilliard_solution_monitor(
+            rhs, dynamic_cast<Discretization2DCart&>(geom), time_integrator.getCurrentSolutionState()));
+      });
+      return;
+    case 3:
+      time_integrator.registerObserver(Event::TimeStepComplete, [&]() {
+        Logger::get().setSolutionMonitor(cahn_hilliard_solution_monitor(
+            rhs, dynamic_cast<Discretization3DCart&>(geom), time_integrator.getCurrentSolutionState()));
+      });
+      return;
+    default:
+      Logger::get().FatalMessage("Only dimensions 2 and 3 supported.");
+  }
 }

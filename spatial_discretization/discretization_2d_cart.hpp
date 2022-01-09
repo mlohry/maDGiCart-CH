@@ -1,9 +1,10 @@
 #pragma once
 
 #include "data_structures/managed_array_2d.hpp"
+#include "spatial_discretization.hpp"
 
 
-class Discretization2DCart : public ManagedArrayOwner {
+class Discretization2DCart : public SpatialDiscretization {
  public:
   Discretization2DCart(int ni, int nhalo, double xbeg, double xend, double ybeg);
 

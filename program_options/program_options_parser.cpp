@@ -112,7 +112,10 @@ ProgramOptionsParser::ProgramOptionsParser()
       "Maximum x value for Cartesian domain")(
       "domain_resolution",
       po::value<int>(&Options::get().domain_resolution_)->default_value(128),
-      "Cartesian mesh with [domain_resolution]^N nodes");
+      "Cartesian mesh with [domain_resolution]^N nodes")(
+      "dimension",
+      po::value<int>(&Options::get().dimension_)->default_value(2),
+      "Spatial dimension, 2 or 3.");
 
   time_stepping.add_options()(
       "time_integrator",

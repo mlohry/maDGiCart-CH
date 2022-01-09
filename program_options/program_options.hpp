@@ -37,6 +37,7 @@ class Options
   double domain_x_begin() const { return domain_x_begin_; }
   double domain_x_end() const { return domain_x_end_; }
   int    domain_resolution() const { return domain_resolution_; }
+  int    dimension() const { return dimension_; }
   
   // time stepping options
   const std::string& time_integrator() const { return time_integrator_; }
@@ -71,6 +72,7 @@ class Options
   double domain_x_begin_;
   double domain_x_end_;
   int domain_resolution_;
+  int dimension_;
 
   // time stepping options
   std::string time_integrator_;

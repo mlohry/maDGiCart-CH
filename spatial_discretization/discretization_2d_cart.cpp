@@ -8,7 +8,7 @@ Discretization2DCart::Discretization2DCart(
     double xbeg,
     double xend,
     double ybeg)
-    : ManagedArrayOwner("Discretization2DCart"),
+    : SpatialDiscretization("Discretization2DCart"),
       ni_(ni),
       nhalo_(nhalo),
       ninhalo_(ni + 2 * nhalo),
@@ -70,14 +70,11 @@ Discretization2DCart::Discretization2DCart(
   auto y = write_access_host(y_coord_);
   const real_wp xc_beg = xbeg+0.5*dx_;
   const real_wp yc_beg = ybeg+0.5*dx_;
-//  std::cout << "dy: " << dy_ << " " << yc_beg << "\n";
-//  std::cout << "dx: " << dx_ << " " << xc_beg << "\n";
 
   for (int i = -nhalo; i < ni+nhalo; ++i){
     for (int j = -nhalo; j < ni+nhalo; ++j){
       x(i,j) = xc_beg + real_wp(i)*dx_;
       y(i,j) = yc_beg + real_wp(j)*dx_;
-//      std::cout << x(i,j) << " " << y(i,j) << "\n";
     }
   }
 }
