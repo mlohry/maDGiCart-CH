@@ -114,10 +114,10 @@ ODE23::doTimeStep(TimeIntegrableRHS& rhs, SolutionState& state, SolutionState& d
 
     ReduceMaxReal max_residual(error_estimate_);
 
-    maDGForAll(i, 0, k2.size(), {  //
+    maDGForAll(i, 0, res.size(), {  //
       const real_wp local_error_residual = d1 * k1[i] + d2 * k2[i] + d3 * k3[i] + d4 * k4[i];
 
-      const real_wp local_error_estimate = dt * abs(res[i] = local_error_residual);
+      const real_wp local_error_estimate = dt * abs(res[i] - local_error_residual);
 
       max_residual.max(abs(local_error_estimate));
     });
@@ -137,6 +137,7 @@ ODE23::computeNextDT(double current_dt)
 double
 ODE23::PIDController::adaptStep(const double error_estimate, const double current_step)
 {
+  std::cout << "error_estimate: " << error_estimate << "\n";
   double err_n = std::max(error_estimate, std::numeric_limits<double>::epsilon());
   if (err_history.size() != 3) {
     step_history.push_back(current_step);
