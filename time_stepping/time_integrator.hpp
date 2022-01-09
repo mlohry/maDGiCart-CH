@@ -22,7 +22,7 @@ class TimeIntegrator : public Observable {
   const SolutionState& getCurrentSolutionState() const { return *solution_state_; }
 
 
-  std::vector<std::pair<std::string, double>> getIterationStatus() const
+  virtual std::vector<std::pair<std::string, double>> getIterationStatus() const
   {
     std::vector<std::pair<std::string, double>> status;
 
@@ -35,6 +35,12 @@ class TimeIntegrator : public Observable {
 
   virtual void doTimeStep(TimeIntegrableRHS&, SolutionState&, SolutionState&, double time, double dt) = 0;
 
+ protected:
+
+  virtual int_t  getCurrentStep() const { return iter_; }
+  virtual real_t getCurrentTime() const { return time_; }
+  virtual real_t getTimeStepSize() const { return dt_; }
+
  private:
   TimeIntegrableRHS& rhs_;
 
@@ -46,13 +52,6 @@ class TimeIntegrator : public Observable {
 
   std::unique_ptr<SolutionState> solution_state_;
   std::unique_ptr<SolutionState> residual_state_;
-
-
-  virtual int_t  getCurrentStep() const { return iter_; }
-  virtual real_t getCurrentTime() const { return time_; }
-  virtual real_t getTimeStepSize() const { return dt_; }
-  //  SolutionState& getSolutionState() { return *solution_state_; }
-  SolutionState& getResidualState() { return *residual_state_; }
 
 
   /// returns (time0, dt0, cfl, iteration)
@@ -68,4 +67,6 @@ class TimeIntegrator : public Observable {
       real_t                       current_time,
       real_t                       current_dt,
       int_t                        current_iter);
+
+  virtual double computeNextDT(double current_dt);
 };

@@ -76,6 +76,12 @@ TimeIntegrator::initialTimestep(TimeIntegrableRHS& rhs, const TimeIntegratorOpti
 }
 
 
+double TimeIntegrator::computeNextDT(double current_dt)
+{
+  return current_dt;
+}
+
+
 std::tuple<real_t, bool, bool>
 TimeIntegrator::computeNextTimestep(
     TimeIntegrableRHS&           rhs,
@@ -88,7 +94,7 @@ TimeIntegrator::computeNextTimestep(
 {
   bool   last_iteration   = false;
   bool   max_time_reached = false;
-  real_t dt               = current_dt;
+  real_t dt               = computeNextDT(current_dt);
 
   if (options.use_cfl_time_step_) {
     Logger::get().FatalMessage("use_cfl_time_step CFL time stepping not implemented.");
@@ -102,6 +108,28 @@ TimeIntegrator::computeNextTimestep(
   // max_time_steps_=0 means no limit on iteration count
   if (options.max_time_steps_ && current_iter >= options.max_time_steps_) {
     max_time_reached = true;
+  }
+
+  if (options.converged_rel_tol_){
+    auto resmon = Logger::get().getResidualMonitor();
+    for (const auto& kv : resmon){
+      if (kv.first == "rel_res"){
+        if (kv.second < options.converged_rel_tol_)
+        {
+          Logger::get().InfoMessage("Exiting due to converged_rel_tol criterion.");
+          max_time_reached = true;
+        }
+        break;
+      }
+    }
+  }
+
+  if (options.converged_abs_tol_){
+    auto resmon = Logger::get().getResidualMonitor();
+    if (resmon.front().second < options.converged_abs_tol_){
+      Logger::get().InfoMessage("Exiting due to converged_abs_tol criterion.");
+      max_time_reached = true;
+    }
   }
 
   return std::make_tuple(dt, last_iteration, max_time_reached);

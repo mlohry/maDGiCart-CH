@@ -1,6 +1,7 @@
 set(time_stepping_src
         time_integrator.cpp
-        rk3ssp.cpp)
+        rk3ssp.cpp
+        ode23.cpp)
 
 if(MADG_USE_CUDA)
     message(STATUS "Building libtime_stepping with CUDA support.")

@@ -62,7 +62,7 @@ using device_exec_policy = RAJA::cuda_exec<MADG_CUDA_BLOCK_SIZE>;
 #define read_access(arg) arg.readHost()
 #define write_access(arg) arg.writeHost()
 #define read_write_access(arg) arg.readWriteHost()
-#define ReduceSumReal RAJA::ReduceSum<RAJA::omp_reduce, real_t>
-#define ReduceMinReal RAJA::ReduceMin<RAJA::omp_reduce, real_t>
-#define ReduceMaxReal RAJA::ReduceMax<RAJA::omp_reduce, real_t>
+#define ReduceSumReal RAJA::ReduceSum<RAJA::omp_reduce_ordered, real_t>
+#define ReduceMinReal RAJA::ReduceMin<RAJA::omp_reduce_ordered, real_t>
+#define ReduceMaxReal RAJA::ReduceMax<RAJA::omp_reduce_ordered, real_t>
 #endif
