@@ -2,7 +2,8 @@ set(governing_equations_src
         cahn_hilliard/cahn_hilliard_2d_fd.cpp
         cahn_hilliard/cahn_hilliard_initial_conditions.cpp
         residual_calculator.cpp
-        cahn_hilliard/cahn_hilliard_solution_monitor.cpp)
+        cahn_hilliard/cahn_hilliard_solution_monitor.cpp
+        cahn_hilliard/cahn_hilliard_3d_fd.cpp)
 
 
 if(MADG_USE_CUDA)

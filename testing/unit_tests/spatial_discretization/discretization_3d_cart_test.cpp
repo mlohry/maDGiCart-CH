@@ -80,6 +80,7 @@ TEST(Discretiztion3DCart, Laplacian)
   EXPECT_NEAR(accuracy_laplacian.getConvergenceRate().at(expected_order).back(), expected_order, 0.01);
 }
 
+
 TEST(Discretiztion3DCart, Biharmonic)
 {
   OrderOfAccuracy        accuracy_biharmonic;
