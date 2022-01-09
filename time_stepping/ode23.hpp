@@ -2,6 +2,8 @@
 
 #include "time_integrator.hpp"
 
+#include <deque>
+
 /**
  * Bogacki-Shampine explicit Runge-Kutta method, aka ode23 in Matlab.
  *
@@ -36,7 +38,7 @@ class ODE23 : public TimeIntegrator {
   std::unique_ptr<SolutionState> k4_rhs_;
   std::unique_ptr<SolutionState> stage_solution_;
 
-
+  bool first_step_;
   double error_estimate_;
 
   // Butcher tableau coefficients
@@ -62,4 +64,26 @@ class ODE23 : public TimeIntegrator {
   const double d2_ = 1. / 4.;
   const double d3_ = 1. / 3.;
   const double d4_ = 1. / 8.;
+
+
+  double computeNextDT(double current_dt) override;
+
+
+  class PIDController
+  {
+   public:
+    PIDController(double reltol) : errtol_(reltol) {}
+
+    double adaptStep(const double error_estimate, const double current_step);
+
+   private:
+    const double errtol_;
+    const double errest_order_ = 2;
+    const double safety_ = 0.9;
+    // controller gains for PID timestep controller
+    const double kI = 0.25, kP = 0.14, kD = 0.10;
+
+
+    std::deque<double> step_history, err_history;
+  } controller_;
 };

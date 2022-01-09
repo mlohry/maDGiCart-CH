@@ -4,6 +4,33 @@
 ![unit_test_ubuntu_20.04_github_runner_openmp](https://github.com/mlohry/maDGiCart-CH/actions/workflows/unit_test_github_runner_openmp.yml/badge.svg?branch=master)
 ![unit_test_ubuntu_20.04_github_runner_cuda_](https://github.com/mlohry/maDGiCart-CH/actions/workflows/unit_test_github_runner_cuda.yml/badge.svg?branch=master)
 
+## Running
+
+After compilation, unit tests and a sample solution can be run with
+
+    ./unit_testing
+    ./maDGiCart
+
+A longer running 3D example solution can be run with
+
+    ./maDGiCart --dimension=3 --max_time_steps=10000 --eps2=0.0019974621629115655 --sigma=3.5306509073075123 --time_step_size=3e-5 --domain_x_begin=-3.14159 --domain_x_end=3.14159
+
+If one chooses the `--time_integrator=ode23` option, error-adaptive time-stepping will be used. In addition, a global relative convergence tolerance can be specified with `--converged_rel_tol=value` whereby computation ends when absolute residual norm is less than this factor multiplied by the maximum residual over all steps. A complete run may then look like:
+
+    ./maDGiCart --dimension=3 --max_time_steps=100000 --eps2=0.0019974621629115655 --sigma=3.5306509073075123 --domain_x_begin=-3.14159 --domain_x_end=3.14159 --time_integrator=ode23 --converged_rel_tol=1e-6
+
+
+## Plotting
+
+Solutions are output to a VTK-standard `.vts` structured grid format. This can be loaded directly into programs such as Paraview, or with the included `plot_vts.py` script which utilizes the `pyvista` VTK frontend:
+
+    python3 plot_vts.py outputfile.vts
+
+Convergence history and configuration options are exported to `*.log` files which can be plotted with
+
+    python3 /path/to/maDGiCart-CH/plot_history.py /path/to/logfile.log
+     
+
 ## Compiling
 
 ### CMake Options
@@ -27,16 +54,6 @@ where other OS's should be similar. Using an out-of-source build, use cmake:
 
     cmake ./path/to/maDiCart-CH
     make -j
-
-Then run unit tests and a sample solution with
-
-    ./unit_testing
-    ./maDGiCart
-
-A longer running 3D example solution can be run with
-
-    ./maDGiCart --dimension=3 --max_time_steps=10000 --eps2=0.0019974621629115655 --sigma=3.5306509073075123 --time_step_size=3e-5 --domain_x_begin=-3.14159 --domain_x_end=3.14159
-
 
 ### Docker build
 
@@ -83,14 +100,3 @@ Run unit tests and a sample solution:
     ./unit_testing
     ./maDGiCart
 
-
-## Plotting
-
-Solutions are output to a VTK-standard `.vts` structured grid format. This can be loaded directly into programs such as Paraview, or with the included `plot_vts.py` script which utilizes the `pyvista` VTK frontend:
-
-    python3 plot_vts.py outputfile.vts
-
-Convergence history and configuration options are exported to `*.log` files which can be plotted with
-
-    python3 /path/to/maDGiCart-CH/plot_history.py /path/to/logfile.log
-     

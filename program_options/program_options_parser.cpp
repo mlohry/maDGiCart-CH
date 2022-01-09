@@ -151,11 +151,14 @@ ProgramOptionsParser::ProgramOptionsParser()
           ->default_value(std::numeric_limits<double>::max()),
       "For adaptive time stepping, the maximum time step size.")(
       "time_abs_err_tol",
-      po::value<double>(&Options::get().time_abs_err_tol_)->default_value(1e-2),
+      po::value<double>(&Options::get().time_abs_err_tol_)->default_value(1e-4),
       "Absolute error tolerance for adaptive time stepping.")(
       "time_rel_err_tol",
-      po::value<double>(&Options::get().time_rel_err_tol_)->default_value(1e-2),
-      "Relative error tolerance for adaptive time stepping.");
+      po::value<double>(&Options::get().time_rel_err_tol_)->default_value(1e-4),
+      "Relative error tolerance for adaptive time stepping.")(
+      "converged_rel_tol",
+      po::value<double>(&Options::get().converged_rel_tol_)->default_value(0),
+      "Relative residual to consider solution converged. 0 indicates use max time or max timesteps.");
 
 }
 

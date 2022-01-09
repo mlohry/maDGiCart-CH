@@ -67,4 +67,6 @@ class TimeIntegrator : public Observable {
       real_t                       current_time,
       real_t                       current_dt,
       int_t                        current_iter);
+
+  virtual double computeNextDT(double current_dt);
 };

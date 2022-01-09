@@ -52,6 +52,7 @@ class Options
   unsigned int       max_time_steps() const { return max_time_steps_; }
   double             time_abs_err_tol() const { return time_abs_err_tol_; }
   double             time_rel_err_tol() const { return time_rel_err_tol_; }
+  double             converged_rel_tol() const { return converged_rel_tol_; }
 
  private:
   Options() {}
@@ -87,4 +88,5 @@ class Options
   unsigned    max_time_steps_;
   double      time_abs_err_tol_;
   double      time_rel_err_tol_;
+  double      converged_rel_tol_;
 };

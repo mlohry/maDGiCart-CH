@@ -2,6 +2,11 @@
 
 #include "governing_equations/time_integrable_rhs.hpp"
 
+namespace {
+double abs_res = 0;
+double max_res = 0;
+double rel_res = 0;
+}
 
 std::vector<std::pair<std::string, double>>
 residual_calculator(const TimeIntegrableRHS& rhs, const SolutionState& residuals)
@@ -23,6 +28,12 @@ residual_calculator(const TimeIntegrableRHS& rhs, const SolutionState& residuals
     });
     name_value_pairs[ieqn].second = sqrt(squared_norm.get() / idx.size());
   }
+
+  abs_res = name_value_pairs[0].second;
+  max_res = std::max(max_res, abs_res);
+  rel_res = abs_res / max_res;
+  name_value_pairs.emplace_back(std::pair<std::string, double>{"rel_res", rel_res});
+
 
   return name_value_pairs;
 }
