@@ -137,7 +137,6 @@ ODE23::computeNextDT(double current_dt)
 double
 ODE23::PIDController::adaptStep(const double error_estimate, const double current_step)
 {
-  std::cout << "error_estimate: " << error_estimate << "\n";
   double err_n = std::max(error_estimate, std::numeric_limits<double>::epsilon());
   if (err_history.size() != 3) {
     step_history.push_back(current_step);
