@@ -159,7 +159,7 @@ ODE23::PIDController::adaptStep(const double error_estimate, const double curren
 
     // restricts timestep from increasing by more than double or decreasing
     // by more than 1/10th between any two given timesteps.
-    step = std::max(std::min(step, current_step * 1.1), current_step * 0.1);
+    step = std::max(std::min(step, current_step * 1.1), current_step * 0.01);
     return step;
   }
 }

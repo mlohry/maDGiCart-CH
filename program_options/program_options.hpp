@@ -53,6 +53,7 @@ class Options
   double             time_abs_err_tol() const { return time_abs_err_tol_; }
   double             time_rel_err_tol() const { return time_rel_err_tol_; }
   double             converged_rel_tol() const { return converged_rel_tol_; }
+  double             converged_abs_tol() const { return converged_abs_tol_; }
 
  private:
   Options() {}
@@ -89,4 +90,5 @@ class Options
   double      time_abs_err_tol_;
   double      time_rel_err_tol_;
   double      converged_rel_tol_;
+  double      converged_abs_tol_;
 };

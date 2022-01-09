@@ -19,6 +19,7 @@ If one chooses the `--time_integrator=ode23` option, error-adaptive time-steppin
 
     ./maDGiCart --dimension=3 --max_time_steps=100000 --eps2=0.0019974621629115655 --sigma=3.5306509073075123 --domain_x_begin=-3.14159 --domain_x_end=3.14159 --time_integrator=ode23 --converged_rel_tol=1e-6
 
+Alternatively one can use `--converged_abs_tol=value` e.g. `1e-5` for absolute convergence tolerance. 
 
 ## Plotting
 

@@ -124,6 +124,13 @@ TimeIntegrator::computeNextTimestep(
     }
   }
 
+  if (options.converged_abs_tol_){
+    auto resmon = Logger::get().getResidualMonitor();
+    if (resmon.front().second < options.converged_abs_tol_){
+      Logger::get().InfoMessage("Exiting due to converged_abs_tol criterion.");
+      max_time_reached = true;
+    }
+  }
 
   return std::make_tuple(dt, last_iteration, max_time_reached);
 }

@@ -158,7 +158,10 @@ ProgramOptionsParser::ProgramOptionsParser()
       "Relative error tolerance for adaptive time stepping.")(
       "converged_rel_tol",
       po::value<double>(&Options::get().converged_rel_tol_)->default_value(0),
-      "Relative residual to consider solution converged. 0 indicates use max time or max timesteps.");
+      "Relative residual to consider solution converged. 0 indicates use max time or max timesteps.")(
+      "converged_abs_tol",
+      po::value<double>(&Options::get().converged_abs_tol_)->default_value(0),
+      "Absolute residual to consider solution converged. 0 indicates use max time or max timesteps.");
 
 }
 

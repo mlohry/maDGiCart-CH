@@ -25,6 +25,7 @@ class TimeIntegratorOptions
   real_t      min_time_step_size_;
   real_t      max_time_step_size_;
   real_t      converged_rel_tol_;
+  real_t      converged_abs_tol_;
 
   /**
    * Named parameter idiom. Construct TimeIntegratorOptions like
@@ -91,6 +92,11 @@ class TimeIntegratorOptions
     converged_rel_tol_ = r;
     return *this;
   }
+  TimeIntegratorOptions& converged_abs_tol(real_t a)
+  {
+    converged_abs_tol_ = a;
+    return *this;
+  }
 };
 
 
@@ -108,5 +114,6 @@ inline TimeIntegratorOptions getTimeOptionsUsingGlobalOptions()
       .use_adaptive_time_step(Options::get().use_adaptive_time_step())
       .min_time_step_size(Options::get().min_time_step_size())
       .max_time_step_size(Options::get().max_time_step_size())
-      .converged_rel_tol(Options::get().converged_rel_tol());
+      .converged_rel_tol(Options::get().converged_rel_tol())
+      .converged_abs_tol(Options::get().converged_abs_tol());
 }

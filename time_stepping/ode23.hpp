@@ -79,7 +79,7 @@ class ODE23 : public TimeIntegrator {
    private:
     const double errtol_;
     const double errest_order_ = 2;
-    const double safety_ = 0.9;
+    const double safety_ = 1.0;
     // controller gains for PID timestep controller
     const double kI = 0.25, kP = 0.14, kD = 0.10;
 
