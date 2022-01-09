@@ -1,7 +1,7 @@
 #include "discretization_3d_cart.hpp"
 
 Discretization3DCart::Discretization3DCart(int ni, int nhalo, double xbeg, double xend, double ybeg, double zbeg)
-    : ManagedArrayOwner("Discretization3DCart"),
+    : SpatialDiscretization("Discretization3DCart"),
       ni_(ni),
       nhalo_(nhalo),
       ninhalo_(ni + 2 * nhalo),

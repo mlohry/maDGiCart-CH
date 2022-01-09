@@ -11,8 +11,23 @@
 #include "governing_equations/cahn_hilliard/cahn_hilliard_state.hpp"
 
 
+void write_solution_to_vtk(const SolutionState& state, const SpatialDiscretization& geom, std::string filename_withoutext)
+{
+  try {
+    const auto& g2d = dynamic_cast<const Discretization2DCart&>(geom);
+    write_solution_to_vtk_2d(state, g2d, filename_withoutext);
+  }
+  catch(...)
+  {
+    const auto& g3d = dynamic_cast<const Discretization3DCart&>(geom);
+    write_solution_to_vtk_3d(state, g3d, filename_withoutext);
+  }
+
+}
+
+
 void
-write_solution_to_vtk(const SolutionState& state, const Discretization2DCart& geom, std::string filename_withoutext)
+write_solution_to_vtk_2d(const SolutionState& state, const Discretization2DCart& geom, std::string filename_withoutext)
 {
   const std::string filename = filename_withoutext + ".vts";
   auto              timer    = Logger::get().timer("Writing VTK file " + filename);
@@ -61,7 +76,7 @@ write_solution_to_vtk(const SolutionState& state, const Discretization2DCart& ge
 
 
 void
-write_solution_to_vtk(const SolutionState& state, const Discretization3DCart& geom, std::string filename_withoutext)
+write_solution_to_vtk_3d(const SolutionState& state, const Discretization3DCart& geom, std::string filename_withoutext)
 {
   const std::string filename = filename_withoutext + ".vts";
   auto              timer    = Logger::get().timer("Writing VTK file " + filename);

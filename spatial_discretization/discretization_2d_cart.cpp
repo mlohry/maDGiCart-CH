@@ -8,7 +8,7 @@ Discretization2DCart::Discretization2DCart(
     double xbeg,
     double xend,
     double ybeg)
-    : ManagedArrayOwner("Discretization2DCart"),
+    : SpatialDiscretization("Discretization2DCart"),
       ni_(ni),
       nhalo_(nhalo),
       ninhalo_(ni + 2 * nhalo),

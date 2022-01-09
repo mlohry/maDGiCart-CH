@@ -93,38 +93,3 @@ TEST(CahnHilliard3D, RHSEvaluation)
   std::cout << "cartesian finite difference Cahn-Hilliard error:\n" << accuracy_chrhs << "\n";
   EXPECT_NEAR(accuracy_chrhs.getConvergenceRate().at(expected_order).back(), expected_order, 0.01);
 }
-
-
-TEST(CahnHilliard3D, TestSolve)
-{
-  ProgramOptionsParser     parser;
-  std::vector<std::string> cmd = cmdline;
-  cmd.push_back("--max_time_steps=10000");
-  parser.parseInputOptions(cmd);
-
-  const int N = 128;
-
-  Discretization3DCart   geom(N, 2, -M_PI, M_PI, -M_PI, -M_PI);
-  CahnHilliardParameters ch_params;
-  CahnHilliard3DFD       ch_rhs(geom, ch_params);
-
-  auto state     = ch_rhs.createSolutionState();
-  auto dstate_dt = ch_rhs.createSolutionState();
-
-  RK3SSP time_integrator(ch_rhs, getTimeOptionsUsingGlobalOptions());
-
-  time_integrator.registerObserver(Event::TimeStepComplete, [&]() {
-    Logger::get().setResidualMonitor(residual_calculator(ch_rhs, time_integrator.getCurrentResidual()));
-  });
-
-  time_integrator.registerObserver(
-      Event::TimeStepComplete, [&]() { Logger::get().setTimeMonitor(time_integrator.getIterationStatus()); });
-
-  time_integrator.registerObserver(Event::TimeStepComplete, [&]() { Logger::get().updateLog(); });
-
-  CahnHilliardInitialConditions init_cond(ch_params);
-
-  time_integrator.solve(ch_rhs, init_cond);
-
-  write_solution_to_vtk(time_integrator.getCurrentSolutionState(), geom, "ch3dtest");
-}
