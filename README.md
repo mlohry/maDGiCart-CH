@@ -101,3 +101,27 @@ Run unit tests and a sample solution:
     ./unit_testing
     ./maDGiCart
 
+## Benchmarking
+
+System benchmarks can be run using `./benchmark_testing`. This measures the time spent in the evaluation of the right-hand-side of the discretized Cahn-Hilliard equation in 2D and 3D.
+
+### 3D Benchmarks
+
+Evaluations per second (higher is faster), 3D, test system AMD Ryzen R9-3900X 12-core CPU, nvidia GTX Titan Black GPU:
+
+| Grid size     | Serial CPU  | OpenMP CPU, 12 threads | GTX Titan Black | 
+| ------------- | ------------- |
+| 64^2  | 84.48 | 385.71 | 353.88   |
+| 128^2  | 10.15  | 41.52 |  48.66  |
+| 256^2  | 1.20  | 4.59 |   5.78   |
+
+
+### 2D Benchmarks
+
+Evaluations per second (higher is faster), 2D, test system AMD Ryzen R9-3900X 12-core CPU, nvidia GTX Titan Black GPU:
+
+| Grid size     | Serial CPU  | OpenMP CPU, 12 threads | GTX Titan Black | 
+| ------------- | ------------- |
+| 64^2   | 11261.26  | 13812.15 | 8110.30  |
+| 128^2  | 3045.99  | 7645.26 |  6684.49  |
+| 256^2  | 744.82  | 2707.09 |   1194.89   |
