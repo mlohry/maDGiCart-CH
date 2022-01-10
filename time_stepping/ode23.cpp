@@ -117,12 +117,10 @@ ODE23::doTimeStep(TimeIntegrableRHS& rhs, SolutionState& state, SolutionState& d
     maDGForAll(i, 0, res.size(), {  //
       const real_wp local_error_residual = d1 * k1[i] + d2 * k2[i] + d3 * k3[i] + d4 * k4[i];
 
-      const real_wp local_error_estimate = dt * abs(res[i] - local_error_residual);
-
-      max_residual.max(abs(local_error_estimate));
+      max_residual.max(fabs(res[i] - local_error_residual));
     });
 
-    error_estimate_ = std::max(error_estimate_, max_residual.get());
+    error_estimate_ = std::max(error_estimate_, dt * max_residual.get());
   }
 }
 
