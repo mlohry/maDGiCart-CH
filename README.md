@@ -110,7 +110,7 @@ System benchmarks can be run using `./benchmark_testing`. This measures the time
 AMD Ryzen 9 3900X 12-core CPU, nvidia GTX Titan Black GPU:
 
 | Grid size     | Serial CPU  | OpenMP CPU, 12 threads | GTX Titan Black | 
-| ------------- | ------------- |
+| ------------- | ------------- | ------------- | ------------- |
 | 64^2  | 84.48 | 385.71 | 353.88   |
 | 128^2  | 10.15  | 41.52 |  48.66  |
 | 256^2  | 1.20  | 4.59 |   5.78   |
@@ -118,7 +118,7 @@ AMD Ryzen 9 3900X 12-core CPU, nvidia GTX Titan Black GPU:
 AMD Ryzen Threadripper 1900X 8-Core Processor:
 
 | Grid size     | Serial CPU  | OpenMP CPU, 8 threads |
-| ------------- | ------------- |
+| ------------- | ------------- | ------------- |
 | 64^2  | 71.64 | 174.43| 
 | 128^2  | 8.49  | 27.56 |  
 | 256^2  | 0.93  | 2.94 |  
@@ -129,7 +129,7 @@ AMD Ryzen Threadripper 1900X 8-Core Processor:
 AMD Ryzen 9 3900X 12-core CPU, nvidia GTX Titan Black GPU:
 
 | Grid size     | Serial CPU  | OpenMP CPU, 12 threads | GTX Titan Black | 
-| ------------- | ------------- |
+| ------------- | ------------- | ------------- | ------------- |
 | 64^2   | 11261.26  | 13812.15 | 8110.30  |
 | 128^2  | 3045.99  | 7645.26 |  6684.49  |
 | 256^2  | 744.82  | 2707.09 |   1194.89   |
@@ -137,7 +137,7 @@ AMD Ryzen 9 3900X 12-core CPU, nvidia GTX Titan Black GPU:
 AMD Ryzen Threadripper 1900X 8-Core Processor:
 
 | Grid size     | Serial CPU  | OpenMP CPU, 8 threads |
-| ------------- | ------------- |
+| ------------- | ------------- | ------------- |
 | 64^2  | 10582.01 | 11723.33 | 
 | 128^2  | 2928.26  | 6540.22 |  
 | 256^2  | 735.46 | 2123.14 |  
