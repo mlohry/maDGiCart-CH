@@ -15,8 +15,8 @@ TEST(CahnHilliardRegression, Step10)
   auto& res = Logger::get().getResidualMonitor();
   auto& sol = Logger::get().getSolutionMonitor();
 
-  EXPECT_NEAR(73.233883471387173, res[0].second, 0.0001e1);   // res_c
-  EXPECT_NEAR(-0.0060905932900116051, sol[0].second, 0.0001e-3); // min_c
-  EXPECT_NEAR(0.0058983260761296171, sol[1].second, 0.0001e-3);  // max_c
-  EXPECT_NEAR(0.24657124985861673, sol[2].second, 0.0001e-1);  // grad_c_mag
+  EXPECT_NEAR(7.32339e+01, res[0].second, 0.0001e1);   // res_c
+  EXPECT_NEAR(-6.09467e-03, sol[0].second, 0.0001e-3); // min_c
+  EXPECT_NEAR(5.89425e-03, sol[1].second, 0.0001e-3);  // max_c
+  EXPECT_NEAR(2.46571e-01, sol[2].second, 0.0001e-1);  // grad_c_mag
 }
