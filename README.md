@@ -105,7 +105,7 @@ Run unit tests and a sample solution:
 
 System benchmarks can be run using `./benchmark_testing`. This measures the time spent in the evaluation of the right-hand-side of the discretized Cahn-Hilliard equation in 2D and 3D.
 
-### Evaluations per second (higher is faster) benchmarks, 3D
+### Evaluations per second (higher is faster), 3D
 
 AMD Ryzen 9 3900X 12-core CPU, nvidia GTX Titan Black GPU:
 
@@ -115,7 +115,7 @@ AMD Ryzen 9 3900X 12-core CPU, nvidia GTX Titan Black GPU:
 | 128^2  | 10.15  | 41.52 |  48.66  |
 | 256^2  | 1.20  | 4.59 |   5.78   |
 
-AMD Ryzen Threadripper 1900X 8-Core Processor:
+AMD Ryzen Threadripper 1900X 8-Core CPU:
 
 | Grid size     | Serial CPU  | OpenMP CPU, 8 threads |
 | ------------- | ------------- | ------------- |
@@ -124,7 +124,7 @@ AMD Ryzen Threadripper 1900X 8-Core Processor:
 | 256^2  | 0.93  | 2.94 |  
 
 
-### Evaluations per second (higher is faster) benchmarks, 2D
+### Evaluations per second (higher is faster), 2D
 
 AMD Ryzen 9 3900X 12-core CPU, nvidia GTX Titan Black GPU:
 
@@ -134,7 +134,7 @@ AMD Ryzen 9 3900X 12-core CPU, nvidia GTX Titan Black GPU:
 | 128^2  | 3045.99  | 7645.26 |  6684.49  |
 | 256^2  | 744.82  | 2707.09 |   1194.89   |
 
-AMD Ryzen Threadripper 1900X 8-Core Processor:
+AMD Ryzen Threadripper 1900X 8-Core CPU:
 
 | Grid size     | Serial CPU  | OpenMP CPU, 8 threads |
 | ------------- | ------------- | ------------- |
