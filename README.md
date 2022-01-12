@@ -112,9 +112,9 @@ Get the image id from this command:
 
     docker images
 
-Save that image as a tar file (say it was id 9c27e219663c):
+Save that image as a tar file (say it has the Docker tag madg-cuda):
 
-    docker save 9c27e219663c -o myimage.tar
+    docker save -t madg-cuda -o myimage.tar
 
 Build the singularity image:
 
