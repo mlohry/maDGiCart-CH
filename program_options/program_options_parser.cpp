@@ -87,7 +87,10 @@ ProgramOptionsParser::ProgramOptionsParser()
       "Solution output file name, without file extension.")(
       "log_file",
       po::value<std::string>(&Options::get().log_file_)->default_value("maDGiCart"),
-      "Solution output file name, without file extension.");
+      "Solution output file name, without file extension.")(
+      "log_frequency",
+      po::value<int>(&Options::get().log_frequency_)->default_value(20),
+      "Logger update frequency.");
 
   physics.add_options()(
       "equation_type",

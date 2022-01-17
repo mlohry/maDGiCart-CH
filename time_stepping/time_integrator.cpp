@@ -18,8 +18,6 @@ void TimeIntegrator::solve(TimeIntegrableRHS& rhs, InitialConditions& initial_co
 
   initial_conditions.set(rhs, state);
 
-  notifyObservers(Event::TimeStart);
-
   Logger::get().FatalAssert(state.nvecs() == rhs.nEquations(), "state.nvecs() == device_rhs.nEquations()");
   for (int i = 0; i < state.nvecs(); ++i) {
     Logger::get().WarningAssert(
@@ -34,15 +32,11 @@ void TimeIntegrator::solve(TimeIntegrableRHS& rhs, InitialConditions& initial_co
 
   while (!max_time_reached) {
 
-    notifyObservers(Event::TimeStepStart);
-    notifyObservers(Event::InnerIterationStart);
-
     doTimeStep(rhs, state, *residual_state_, time_, dt_);
 
     time_ += dt_;
     iter_++;
 
-    notifyObservers(Event::InnerIterationComplete);
     notifyObservers(Event::TimeStepComplete);
 
     if (last_step) {
@@ -52,8 +46,6 @@ void TimeIntegrator::solve(TimeIntegrableRHS& rhs, InitialConditions& initial_co
     std::tie(dt_, last_step, max_time_reached) =
         computeNextTimestep(rhs, time_options_, state, cfl_, time_, dt_, iter_);
   }
-
-  notifyObservers(Event::TimeComplete);
 }
 
 
