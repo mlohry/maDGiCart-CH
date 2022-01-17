@@ -45,7 +45,7 @@ class CahnHilliard3DFixture : public celero::TestFixture {
   std::unique_ptr<SolutionState>        dstate_dt_;
 };
 
-BASELINE_F(CahnHilliard3D, CHRHS3D, CahnHilliard3DFixture, 5, 5)
+BASELINE_F(CahnHilliard3D, CHRHS3D, CahnHilliard3DFixture, 0, 5)
 {  //
   ch_rhs_->evalRHSImpl(*state_, 0, *dstate_dt_);
 }
