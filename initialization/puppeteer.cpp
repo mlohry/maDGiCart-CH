@@ -38,6 +38,8 @@ Puppeteer::Puppeteer(const std::vector<std::string>& cmd_line)
   attachResidualObservers(*time_integrator_, *rhs_);
   attachSolutionObservers(*time_integrator_, *geom_, *rhs_);
   attachTimeObservers(*time_integrator_);
+
+  time_integrator_->setNotifyFrequency(Event::TimeStepComplete, Options::get().log_frequency());
 }
 
 
