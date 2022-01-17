@@ -9,6 +9,7 @@ TEST(CahnHilliardRegression, Step10)
 {
   std::vector<std::string> cmd = cmdline;
   cmd.push_back("--max_time_steps=10");
+  cmd.push_back("--log_frequency=1");
   Puppeteer puppeteer(cmd);
   puppeteer.run();
 
