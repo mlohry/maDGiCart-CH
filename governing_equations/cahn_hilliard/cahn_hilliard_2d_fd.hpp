@@ -25,4 +25,9 @@ class CahnHilliard2DFD : public CahnHilliardBase {
 
  private:
   Discretization2DCart& geom_;
+
+  std::unique_ptr<ManagedArray2D<real_wp>> laplacian_rhs_term_;
+  std::unique_ptr<ManagedArray2D<real_wp>> laplacian_argument_;
+  std::unique_ptr<ManagedArray2D<real_wp>> biharmonic_term_;
+  std::unique_ptr<ManagedArray2D<real_wp>> linear_term_;
 };

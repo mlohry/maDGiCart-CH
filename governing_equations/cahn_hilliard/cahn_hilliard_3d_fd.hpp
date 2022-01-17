@@ -25,4 +25,9 @@ class CahnHilliard3DFD : public CahnHilliardBase {
 
  private:
   Discretization3DCart& geom_;
+
+  std::unique_ptr<ManagedArray3D<real_wp>> laplacian_rhs_term_;
+  std::unique_ptr<ManagedArray3D<real_wp>> laplacian_argument_;
+  std::unique_ptr<ManagedArray3D<real_wp>> biharmonic_term_;
+  std::unique_ptr<ManagedArray3D<real_wp>> linear_term_;
 };
