@@ -11,6 +11,7 @@ class TimeIntegrableRHS;
 class SpatialDiscretization;
 class InitialConditions;
 class TimeIntegrator;
+class SolutionMonitor;
 
 
 class Puppeteer {
@@ -26,6 +27,8 @@ class Puppeteer {
   std::unique_ptr<TimeIntegrableRHS>     rhs_;
   std::unique_ptr<InitialConditions>     initial_conditions_;
   std::unique_ptr<TimeIntegrator>        time_integrator_;
+
+  std::unique_ptr<SolutionMonitor>       solution_monitor_;
 
   static std::unique_ptr<TimeIntegrableRHS>     rhsFactory(SpatialDiscretization&);
   static std::unique_ptr<SpatialDiscretization> geomFactory();

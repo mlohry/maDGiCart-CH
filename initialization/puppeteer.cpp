@@ -159,21 +159,10 @@ Puppeteer::attachResidualObservers(TimeIntegrator& time_integrator, TimeIntegrab
 void
 Puppeteer::attachSolutionObservers(TimeIntegrator& time_integrator, SpatialDiscretization& geom, TimeIntegrableRHS& rhs)
 {
-  const int dim = Options::get().dimension();
-  switch (dim) {
-    case 2:
-      time_integrator.registerObserver(Event::TimeStepComplete, [&]() {
-        Logger::get().setSolutionMonitor(cahn_hilliard_solution_monitor(
-            rhs, dynamic_cast<Discretization2DCart&>(geom), time_integrator.getCurrentSolutionState()));
-      });
-      return;
-    case 3:
-      time_integrator.registerObserver(Event::TimeStepComplete, [&]() {
-        Logger::get().setSolutionMonitor(cahn_hilliard_solution_monitor(
-            rhs, dynamic_cast<Discretization3DCart&>(geom), time_integrator.getCurrentSolutionState()));
-      });
-      return;
-    default:
-      Logger::get().FatalMessage("Only dimensions 2 and 3 supported.");
-  }
+  solution_monitor_ = std::make_unique<CahnHilliardSolutionMonitor>(rhs, geom);
+
+  time_integrator.registerObserver(Event::TimeStepComplete, [&]() {
+    Logger::get().setSolutionMonitor(solution_monitor_->eval(
+        time_integrator.getCurrentSolutionState(), time_integrator.getCurrentTime(), time_integrator.getCurrentStep()));
+  });
 }

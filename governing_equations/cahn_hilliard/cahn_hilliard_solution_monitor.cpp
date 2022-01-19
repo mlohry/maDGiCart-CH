@@ -6,9 +6,64 @@
 #include "spatial_discretization/discretization_3d_cart.hpp"
 #include "typedefs.hpp"
 
+#include "utils/asymptotic_limit.hpp"
+
+
+
+CahnHilliardSolutionMonitor::CahnHilliardSolutionMonitor(
+    const TimeIntegrableRHS&     rhs,
+    const SpatialDiscretization& geom)
+    : rhs_(rhs), geom_(geom), iters_for_curve_fit_(100), iter_start_curve_fit_(1000)
+{
+  try {
+    dynamic_cast<const Discretization2DCart&>(geom);
+    is3D_ = false;
+  }
+  catch (...) {
+    is3D_ = true;
+  }
+}
+
+
+double CahnHilliardSolutionMonitor::asymptoticCurveFit(const std::deque<double>& time, const std::deque<double>& gradc, int iter)
+{
+  if (time.size() != iters_for_curve_fit_ || iter < iter_start_curve_fit_){
+    return 1;
+  }
+
+  return asymptoticLimit(time, gradc);
+}
+
 
 std::vector<std::pair<std::string, double>>
-cahn_hilliard_solution_monitor(
+CahnHilliardSolutionMonitor::eval(const SolutionState& state, double time, int iter)
+{
+  std::vector<std::pair<std::string, double>> monitors;
+
+  if (is3D_) {
+    const auto& g3d = dynamic_cast<const Discretization3DCart&>(geom_);
+    monitors        = cahn_hilliard_solution_monitor_3d(rhs_, g3d, state);
+  }
+  else {
+    const auto& g2d = dynamic_cast<const Discretization2DCart&>(geom_);
+    monitors        = cahn_hilliard_solution_monitor_2d(rhs_, g2d, state);
+  }
+
+
+  time_history_.push_back(time);
+  gradc_history_.push_back(monitors[2].second);
+
+  if (time_history_.size() > iters_for_curve_fit_){ time_history_.pop_front(); }
+  if (gradc_history_.size() > iters_for_curve_fit_){ gradc_history_.pop_front(); }
+
+  monitors.push_back({"gradc_lim", asymptoticCurveFit(time_history_, gradc_history_, iter)});
+
+  return monitors;
+}
+
+
+std::vector<std::pair<std::string, double>>
+CahnHilliardSolutionMonitor::cahn_hilliard_solution_monitor_2d(
     const TimeIntegrableRHS&    rhs,
     const Discretization2DCart& geom,
     const SolutionState&        state)
@@ -63,7 +118,7 @@ cahn_hilliard_solution_monitor(
 
 
 std::vector<std::pair<std::string, double>>
-cahn_hilliard_solution_monitor(
+CahnHilliardSolutionMonitor::cahn_hilliard_solution_monitor_3d(
     const TimeIntegrableRHS&    rhs,
     const Discretization3DCart& geom,
     const SolutionState&        state)

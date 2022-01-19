@@ -18,6 +18,7 @@ def const_dt_plot(pddata):
     ax2.legend()
     
     ax3.plot(pddata["iter"], pddata["grad_c_mag"], label="||grad(c)||")
+    ax3.plot(pddata["iter"], pddata["gradc_lim"], label="||grad(c)|| asymp.")
     ax3.set_xlabel("Iteration")
     ax3.set_ylabel("||grad(c)||")
     ax3.legend()
@@ -37,6 +38,7 @@ def variable_dt_plot(pddata):
     ax2.legend()
     
     ax3.plot(pddata["iter"], pddata["grad_c_mag"], label="||grad(c)||")
+    ax3.plot(pddata["iter"], pddata["gradc_lim"], label="||grad(c)|| asymp.")
     ax3.set_xlabel("Iteration")
     ax3.set_ylabel("||grad(c)||")
     ax3.legend()

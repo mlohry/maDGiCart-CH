@@ -32,6 +32,7 @@ if(MADG_USE_CUDA)
         target_link_libraries(governing_equations
                 discretization
                 parallel
+                utils
                 RAJA
                 ${CUDA_LIBRARIES}
                 )
@@ -39,5 +40,6 @@ else()
         target_link_libraries(governing_equations
                 discretization
                 parallel
+                utils
                 )
 endif()

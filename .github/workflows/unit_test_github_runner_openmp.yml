@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: configure
-        run: sudo apt-get install -y libboost-log-dev libboost-program-options-dev libboost-regex-dev libboost-thread-dev libboost-filesystem-dev && mkdir build && cd build && cmake -DMADG_USE_OPENMP=On ..
+        run: sudo apt-get install -y libboost-log-dev libboost-program-options-dev libboost-regex-dev libboost-thread-dev libboost-filesystem-dev libeigen3-dev && mkdir build && cd build && cmake -DMADG_USE_OPENMP=On ..
       - name: build
         run: cmake --build build --target all -j8
       - name: run tests

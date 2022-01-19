@@ -4,6 +4,7 @@ project(maDGiCart)
 include(ExternalProject)
 
 find_package(Boost REQUIRED COMPONENTS regex program_options log log_setup filesystem thread)
+find_package(Eigen3 REQUIRED)
 
 set(CXX_COMPILER_STRING "${CMAKE_CXX_COMPILER} ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
 add_definitions(-DCXX_COMPILER_STRING="${CXX_COMPILER_STRING}")
@@ -55,7 +56,7 @@ if(MADG_USE_GPU)
     find_package(CUDA REQUIRED)
     set(CMAKE_CUDA_STANDARD 14)
     set(CMAKE_CUDA_STANDARD_REQUIRED ON)
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --Wext-lambda-captures-this --Werror=all-warnings -arch=sm_35 --expt-extended-lambda --expt-relaxed-constexpr -Wno-deprecated-gpu-targets -Xcompiler -Wno-non-template-friend,-Wall,-Werror")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --Wext-lambda-captures-this --Werror=all-warnings -arch=sm_35 --expt-extended-lambda --expt-relaxed-constexpr -Wno-deprecated-gpu-targets -Xcompiler -Wno-non-template-friend,-Wall,-Werror,-Wno-error=cpp")
 endif(MADG_USE_GPU)
 
 
@@ -67,9 +68,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
-set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -Wall -Werror -Wno-error=unused-function -Wno-error=sign-compare -Wno-int-in-bool-context -Werror=reorder  ${STD_FLAG} ${FP_PRECISION_FLAG} ${OpenMP_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -Wall -Werror -Wno-error=unknown-pragmas  -Wno-error=unused-function -Wno-error=sign-compare -Wno-int-in-bool-context -Werror=reorder  ${STD_FLAG} ${FP_PRECISION_FLAG} ${OpenMP_CXX_FLAGS}")
 
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -g -Wall -Werror -DNDEBUG ${STD_FLAG} ${FP_PRECISION_FLAG} -march=native ${OpenMP_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -g -Wall -Werror -Wno-error=unknown-pragmas -DNDEBUG ${STD_FLAG} ${FP_PRECISION_FLAG} -march=native ${OpenMP_CXX_FLAGS}")
 
 
 set(EXTERNAL_INSTALL_DIR ${CMAKE_BINARY_DIR}/external_install)
@@ -87,6 +88,8 @@ include_directories(
         ${CUDA_INCLUDE_DIRS}
         ${CUDA_MATH_INCLUDE_DIR}
         ${RAJA_INCLUDE_DIRS}
+        ${LSQ_INCLUDE_DIR}
+        ${EIGEN3_INCLUDE_DIR}
         ${EXTERNAL_INSTALL_DIR}/include
 )
 
@@ -103,6 +106,7 @@ add_subdirectory(parallel)
 add_subdirectory(program_options)
 add_subdirectory(spatial_discretization)
 add_subdirectory(time_stepping)
+add_subdirectory(utils)
 
 
 # Create compile_commands.json in the build directory.
