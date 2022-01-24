@@ -23,6 +23,7 @@ class Options
   // file options
   const std::string& config_file() const { return config_file_; }
   const std::string& solution_output_file() const { return solution_output_file_; }
+  const std::string& initial_condition_file() const { return initial_condition_file_; }
   const std::string& log_file() const { return log_file_; }
   int                log_frequency() const { return log_frequency_; }
 
@@ -63,6 +64,7 @@ class Options
   // file options
   std::string config_file_;
   std::string solution_output_file_;
+  std::string initial_condition_file_;
   std::string log_file_;
   int         log_frequency_;
 

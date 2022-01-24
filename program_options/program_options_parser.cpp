@@ -85,6 +85,9 @@ ProgramOptionsParser::ProgramOptionsParser()
       "solution_output_file",
       po::value<std::string>(&Options::get().solution_output_file_),
       "Solution output file name, without file extension.")(
+      "initial_condition_file",
+      po::value<std::string>(&Options::get().initial_condition_file_)->default_value("none"),
+      "Filename containing and initial solution. Overrides input values if not 'none'.")(
       "log_file",
       po::value<std::string>(&Options::get().log_file_)->default_value("maDGiCart"),
       "Solution output file name, without file extension.")(

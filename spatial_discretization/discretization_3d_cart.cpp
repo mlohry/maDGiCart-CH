@@ -11,7 +11,10 @@ Discretization3DCart::Discretization3DCart(int ni, int nhalo, double xbeg, doubl
       periodic_receiver_indices_(*this, "PeriodicReceiverIndices", (pow(ninhalo_, 3) - pow(ni_, 3))),
       x_coord_(*this, "CoordinateX", ni, ni, ni, nhalo),
       y_coord_(*this, "CoordinateY", ni, ni, ni, nhalo),
-      z_coord_(*this, "CoordinateZ", ni, ni, ni, nhalo)
+      z_coord_(*this, "CoordinateZ", ni, ni, ni, nhalo),
+      x_vertex_coord_(*this, "VertexCoordinateX", ni + 1, ni + 1, ni + 1, nhalo),
+      y_vertex_coord_(*this, "VertexCoordinateY", ni + 1, ni + 1, ni + 1, nhalo),
+      z_vertex_coord_(*this, "VertexCoordinateZ", ni + 1, ni + 1, ni + 1, nhalo)
 {
   {
     auto idx_list = write_access_host(interior_indices_);
@@ -27,22 +30,37 @@ Discretization3DCart::Discretization3DCart(int ni, int nhalo, double xbeg, doubl
     }
   }
 
+  {
+    auto xv = write_access_host(x_vertex_coord_);
+    auto yv = write_access_host(y_vertex_coord_);
+    auto zv = write_access_host(z_vertex_coord_);
+
+    for (int i = -nhalo; i < ni + nhalo + 1; ++i) {
+      for (int j = -nhalo; j < ni + nhalo + 1; ++j) {
+        for (int k = -nhalo; k < ni + nhalo + 1; ++k) {
+          xv(i, j, k) = xbeg + dx_ * real_wp(i);
+          yv(i, j, k) = ybeg + dx_ * real_wp(j);
+          zv(i, j, k) = zbeg + dx_ * real_wp(k);
+        }
+      }
+    }
+  }
+
 
   {
+    auto xv = read_access_host(x_vertex_coord_);
+    auto yv = read_access_host(y_vertex_coord_);
+    auto zv = read_access_host(z_vertex_coord_);
     auto x = write_access_host(x_coord_);
     auto y = write_access_host(y_coord_);
     auto z = write_access_host(z_coord_);
 
-    const real_wp xc_beg = xbeg + 0.5 * dx_;
-    const real_wp yc_beg = ybeg + 0.5 * dx_;
-    const real_wp zc_beg = zbeg + 0.5 * dx_;
-
     for (int i = -nhalo; i < ni + nhalo; ++i) {
       for (int j = -nhalo; j < ni + nhalo; ++j) {
         for (int k = -nhalo; k < ni + nhalo; ++k) {
-          x(i, j, k) = xc_beg + real_wp(i) * dx_;
-          y(i, j, k) = yc_beg + real_wp(j) * dx_;
-          z(i, j, k) = zc_beg + real_wp(k) * dx_;
+          x(i, j, k) = 0.5*(xv(i, j, k) + xv(i+1, j, k));
+          y(i, j, k) = 0.5*(yv(i, j, k) + yv(i, j+1, k));
+          z(i, j, k) = 0.5*(zv(i, j, k) + zv(i, j, k+1));
         }
       }
     }

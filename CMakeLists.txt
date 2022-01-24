@@ -88,6 +88,7 @@ include_directories(
         ${CUDA_MATH_INCLUDE_DIR}
         ${RAJA_INCLUDE_DIRS}
         ${EXTERNAL_INSTALL_DIR}/include
+        ${TINYXML2_INCLUDE_DIR}
 )
 
 link_directories(${EXTERNAL_INSTALL_DIR}/lib)

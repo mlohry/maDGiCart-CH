@@ -2,12 +2,7 @@
 
 #include <memory>
 
-Discretization2DCart::Discretization2DCart(
-    int    ni,
-    int    nhalo,
-    double xbeg,
-    double xend,
-    double ybeg)
+Discretization2DCart::Discretization2DCart(int ni, int nhalo, double xbeg, double xend, double ybeg)
     : SpatialDiscretization("Discretization2DCart"),
       ni_(ni),
       nhalo_(nhalo),
@@ -16,7 +11,9 @@ Discretization2DCart::Discretization2DCart(
       interior_indices_(*this, "InteriorIndices", ni * ni),
       boundary_indices_(*this, "BoundaryIndices", (ni + 2 * nhalo) * nhalo_ * 2 + ni * nhalo_ * 2),
       x_coord_(*this, "CoordinateX", ni, ni, nhalo),
-      y_coord_(*this, "CoordinateY", ni, ni, nhalo)
+      y_coord_(*this, "CoordinateY", ni, ni, nhalo),
+      x_vertex_coord_(*this, "VertexCoordinateX", ni + 1, ni + 1, nhalo),
+      y_vertex_coord_(*this, "VertexCoordinateY", ni + 1, ni + 1, nhalo)
 {
   {
     auto idx_list = write_access_host(interior_indices_);
@@ -66,15 +63,29 @@ Discretization2DCart::Discretization2DCart(
     }
   }
 
-  auto x = write_access_host(x_coord_);
-  auto y = write_access_host(y_coord_);
-  const real_wp xc_beg = xbeg+0.5*dx_;
-  const real_wp yc_beg = ybeg+0.5*dx_;
+  {
+    auto xv = write_access_host(x_vertex_coord_);
+    auto yv = write_access_host(y_vertex_coord_);
 
-  for (int i = -nhalo; i < ni+nhalo; ++i){
-    for (int j = -nhalo; j < ni+nhalo; ++j){
-      x(i,j) = xc_beg + real_wp(i)*dx_;
-      y(i,j) = yc_beg + real_wp(j)*dx_;
+    for (int i = -nhalo; i < ni + nhalo + 1; ++i) {
+      for (int j = -nhalo; j < ni + nhalo + 1; ++j) {
+        xv(i, j) = xbeg + dx_ * real_wp(i);
+        yv(i, j) = ybeg + dx_ * real_wp(j);
+      }
+    }
+  }
+
+  {
+    auto xv = read_access_host(x_vertex_coord_);
+    auto yv = read_access_host(y_vertex_coord_);
+    auto x  = write_access_host(x_coord_);
+    auto y  = write_access_host(y_coord_);
+
+    for (int i = -nhalo; i < ni + nhalo; ++i) {
+      for (int j = -nhalo; j < ni + nhalo; ++j) {
+        x(i, j) = 0.5 * (xv(i, j) + xv(i + 1, j));
+        y(i, j) = 0.5 * (yv(i, j) + yv(i, j + 1));
+      }
     }
   }
 }
@@ -179,8 +190,9 @@ Discretization2DCart::biharmonic(const ManagedArray2D<real_wp>& state_in, Manage
     f.getIJ(idx[ii], i, j);
 
     del4f(i, j) = (f(i, j + 2) + 2.0 * f(i - 1, j + 1) - 8.0 * f(i, j + 1) + 2.0 * f(i + 1, j + 1) + f(i - 2, j) -
-                  8.0 * f(i - 1, j) + 20.0 * f(i, j) - 8.0 * f(i + 1, j) + f(i + 2, j) + 2.0 * f(i - 1, j - 1) -
-                  8.0 * f(i, j - 1) + 2.0 * f(i + 1, j - 1) + 1.0 * f(i, j - 2)) / dx4;
+                   8.0 * f(i - 1, j) + 20.0 * f(i, j) - 8.0 * f(i + 1, j) + f(i + 2, j) + 2.0 * f(i - 1, j - 1) -
+                   8.0 * f(i, j - 1) + 2.0 * f(i + 1, j - 1) + 1.0 * f(i, j - 2)) /
+                  dx4;
   });
 }
 
