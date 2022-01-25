@@ -7,17 +7,22 @@ class Discretization3DCart : public SpatialDiscretization {
  public:
   Discretization3DCart(int ni, int nhalo, double xbeg, double xend, double ybeg, double zbeg);
 
+  Discretization3DCart(const CartesianDomainDefinition& domain, int nhalo)
+      : Discretization3DCart(domain.nx, nhalo, domain.xbeg, domain.xend, domain.ybeg, domain.zbeg)
+  {
+  }
+
   ~Discretization3DCart() = default;
 
   const IndexArray& interiorIndices() const { return interior_indices_; }
-//  const IndexArray& boundaryIndices() const { return boundary_indices_; }
+  //  const IndexArray& boundaryIndices() const { return boundary_indices_; }
 
   std::unique_ptr<ManagedArray3D<real_wp>> createRealArray() const;
 
-  int ni() const { return ni_; }
-  int nhalo() const { return nhalo_; }
+  int    ni() const { return ni_; }
+  int    nhalo() const { return nhalo_; }
   double dx() const { return dx_; }
-  int nInteriorPoints() const { return interior_indices_.size(); }
+  int    nInteriorPoints() const { return interior_indices_.size(); }
 
   void applyPeriodicBoundaryConditions(ManagedArray3D<real_wp>& state) const;
 
@@ -29,10 +34,14 @@ class Discretization3DCart : public SpatialDiscretization {
   const ManagedArray3DOwning<real_wp>& y() const { return y_coord_; }
   const ManagedArray3DOwning<real_wp>& z() const { return z_coord_; }
 
+  const ManagedArray3DOwning<real_wp>& xvertex() const { return x_vertex_coord_; }
+  const ManagedArray3DOwning<real_wp>& yvertex() const { return y_vertex_coord_; }
+  const ManagedArray3DOwning<real_wp>& zvertex() const { return z_vertex_coord_; }
+
  private:
-  const int ni_;
-  const int nhalo_;
-  const int ninhalo_;
+  const int    ni_;
+  const int    nhalo_;
+  const int    ninhalo_;
   const double dx_;
 
   IndexArray interior_indices_;
@@ -43,4 +52,8 @@ class Discretization3DCart : public SpatialDiscretization {
   ManagedArray3DOwning<real_wp> x_coord_;
   ManagedArray3DOwning<real_wp> y_coord_;
   ManagedArray3DOwning<real_wp> z_coord_;
+
+  ManagedArray3DOwning<real_wp> x_vertex_coord_;
+  ManagedArray3DOwning<real_wp> y_vertex_coord_;
+  ManagedArray3DOwning<real_wp> z_vertex_coord_;
 };

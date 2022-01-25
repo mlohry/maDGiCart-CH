@@ -1,5 +1,6 @@
 #include "puppeteer.hpp"
 
+#include "file_io/vtk_solution_reader.hpp"
 #include "file_io/vtk_solution_writer.hpp"
 #include "governing_equations/cahn_hilliard/cahn_hilliard_2d_fd.hpp"
 #include "governing_equations/cahn_hilliard/cahn_hilliard_3d_fd.hpp"
@@ -7,6 +8,7 @@
 #include "governing_equations/cahn_hilliard/cahn_hilliard_parameters.hpp"
 #include "governing_equations/cahn_hilliard/cahn_hilliard_solution_monitor.hpp"
 #include "governing_equations/initial_conditions.hpp"
+#include "governing_equations/initial_conditions_from_file.hpp"
 #include "governing_equations/residual_calculator.hpp"
 #include "logger/logger.hpp"
 #include "spatial_discretization/discretization_2d_cart.hpp"
@@ -23,6 +25,12 @@ Puppeteer::Puppeteer(const std::vector<std::string>& cmd_line)
 
   Logger::get().initLogFile(Options::get().log_file());
   Logger::get().InfoMessage(parser.getConfigurationFileTemplate());
+
+  const auto init_cond_file = Options::get().initial_condition_file();
+  if (init_cond_file != "none") {
+    solution_reader_ = std::make_unique<VTKSolutionReader>(init_cond_file);
+    Logger::get().InfoMessage("Using initial conditions file " + init_cond_file);
+  }
 
   //
   // construct the primary simulation components
@@ -72,23 +80,27 @@ Puppeteer::geomFactory()
 {
   const int nhalo = 2;  // should be dependent on equation and order / stencil size
 
+  CartesianDomainDefinition domain;
+
+  if (solution_reader_) {
+    domain = solution_reader_->getCartesianDomain();
+  }
+  else {
+    domain.nx   = Options::get().domain_resolution();
+    domain.ny   = domain.nx;
+    domain.nz   = domain.nx;
+    domain.xbeg = Options::get().domain_x_begin();
+    domain.xend = Options::get().domain_x_end();
+    domain.ybeg = Options::get().domain_x_begin();
+    domain.zbeg = Options::get().domain_x_begin();
+  }
+
   const int dim = Options::get().dimension();
   switch (dim) {
     case 2:
-      return std::make_unique<Discretization2DCart>(
-          Options::get().domain_resolution(),
-          nhalo,
-          Options::get().domain_x_begin(),
-          Options::get().domain_x_end(),
-          Options::get().domain_x_begin());
+      return std::make_unique<Discretization2DCart>(domain, nhalo);
     case 3:
-      return std::make_unique<Discretization3DCart>(
-          Options::get().domain_resolution(),
-          nhalo,
-          Options::get().domain_x_begin(),
-          Options::get().domain_x_end(),
-          Options::get().domain_x_begin(),
-          Options::get().domain_x_begin());
+      return std::make_unique<Discretization3DCart>(domain, nhalo);
     default:
       Logger::get().FatalMessage("Only dimensions 2 and 3 supported.");
   }
@@ -126,8 +138,13 @@ Puppeteer::initialConditionsFactory()
   Logger::get().FatalAssert(
       Options::get().equation_type() == "cahn-hilliard", "Only equation_type=cahn-hilliard currently supported.");
 
-  CahnHilliardParameters params;
-  return std::make_unique<CahnHilliardInitialConditions>(params);
+  if (solution_reader_) {
+    return std::make_unique<InitialConditionsFromFile>(*solution_reader_);
+  }
+  else {
+    CahnHilliardParameters params;
+    return std::make_unique<CahnHilliardInitialConditions>(params);
+  }
 }
 
 

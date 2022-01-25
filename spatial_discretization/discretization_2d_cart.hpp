@@ -8,6 +8,12 @@ class Discretization2DCart : public SpatialDiscretization {
  public:
   Discretization2DCart(int ni, int nhalo, double xbeg, double xend, double ybeg);
 
+  Discretization2DCart(const CartesianDomainDefinition& domain, int nhalo)
+      : Discretization2DCart(domain.nx, nhalo, domain.xbeg, domain.xend, domain.ybeg)
+  {
+  }
+
+
   ~Discretization2DCart() = default;
 
   const IndexArray& interiorIndices() const { return interior_indices_; }
@@ -15,10 +21,10 @@ class Discretization2DCart : public SpatialDiscretization {
 
   std::unique_ptr<ManagedArray2D<real_wp>> createRealArray() const;
 
-  int ni() const { return ni_; }
-  int nhalo() const { return nhalo_; }
+  int    ni() const { return ni_; }
+  int    nhalo() const { return nhalo_; }
   double dx() const { return dx_; }
-  int nInteriorPoints() const { return ni()*ni(); }
+  int    nInteriorPoints() const { return ni() * ni(); }
 
   void applyPeriodicBoundaryConditions(ManagedArray2D<real_wp>& state) const;
 
@@ -30,14 +36,20 @@ class Discretization2DCart : public SpatialDiscretization {
   const ManagedArray2DOwning<real_wp>& x() const { return x_coord_; }
   const ManagedArray2DOwning<real_wp>& y() const { return y_coord_; }
 
+  const ManagedArray2DOwning<real_wp>& xvertex() const { return x_vertex_coord_; }
+  const ManagedArray2DOwning<real_wp>& yvertex() const { return y_vertex_coord_; }
+
  private:
-  const int ni_;
-  const int nhalo_;
-  const int ninhalo_;
+  const int    ni_;
+  const int    nhalo_;
+  const int    ninhalo_;
   const double dx_;
 
-  IndexArray interior_indices_;
-  IndexArray boundary_indices_;
+  IndexArray                    interior_indices_;
+  IndexArray                    boundary_indices_;
   ManagedArray2DOwning<real_wp> x_coord_;
   ManagedArray2DOwning<real_wp> y_coord_;
+
+  ManagedArray2DOwning<real_wp> x_vertex_coord_;
+  ManagedArray2DOwning<real_wp> y_vertex_coord_;
 };
