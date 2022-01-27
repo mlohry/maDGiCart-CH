@@ -85,9 +85,40 @@ def main_3d_single_run( outdir : str , builddir : str ):
                         "--sigma" , str(sigma) ] )
 
 
+def main_3d_single_run_from_file( outdir : str , builddir : str , m : float , X : float , initial_condition_file : str ):
+
+    os.chdir( outdir )
+    
+    with open( outdir + "/params.csv" , 'w' ) as myfile:
+        w = csv.writer( myfile )
+        w.writerow( [ 'm' , m ] )
+        w.writerow( [ 'X' , X ] )
+        myfile.flush()
+
+    eps2 , sigma = compute_eps2_and_sigma_from_X_and_m_3D( X , m )
+
+    subprocess.run( [ builddir + "/maDGiCart" ,
+                        "--dimension" , "3" ,
+                        "--max_time_steps"  , "10000" , 
+                        "--time_integrator" , "ode23" ,
+                        "--converged_rel_tol" , "1e-4" ,
+                        "--initial_condition_file" , initial_condition_file ,
+                        "--m"     , str(m) ,
+                        "--eps2"  , str(eps2) ,
+                        "--sigma" , str(sigma) ] )
+
+
+
 if __name__ == "__main__":
 
-    outdir    = sys.argv[1]
-    builddir  = sys.argv[2]
+    #outdir    = sys.argv[1]
+    #builddir  = sys.argv[2]
 
-    main_3d_single_run( outdir , builddir )
+    #main_3d_single_run( outdir , builddir )
+    
+    outdir   = '/home/adegennaro/Projects/appmath/madgicartCH-postproc/data/stacked_m0p4_X0p15'
+    builddir = '/home/adegennaro/Projects/appmath/maDGiCart-CH-build'
+
+    main_3d_single_run_from_file( outdir , builddir , 0.4 , 0.15305960080040307 , 
+        '/home/adegennaro/Projects/appmath/madgicartCH-postproc/data/stacked_m0p4_X0p15/c_stack_cube_m0p4_ascii.vts' )
+
