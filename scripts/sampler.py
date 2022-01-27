@@ -60,10 +60,10 @@ def main_2d_single_run( outdir : str , builddir : str ):
                     "--sigma" , str(sigma) ] )
 
 
-def main_3d_single_run( outdir : str , builddir : str ):
+def main_3d_single_run( outdir : str , builddir : str , m : float = None , X : float = None ):
 
-    mi     = np.random.uniform( -0.7  , 0.7 )
-    Xi     = np.random.uniform( 0.055 , 0.5 )
+    mi = np.random.uniform( -0.7  , 0.7 ) if m is None else m
+    Xi = np.random.uniform( 0.055 , 0.5 ) if X is None else X
     
     os.chdir( outdir )
     
