@@ -17,6 +17,10 @@
 #include "time_stepping/time_integrator_options.hpp"
 #include "utils/registry.hpp"
 
+#include <iomanip>
+#include <boost/lexical_cast.hpp>
+#include <algorithm>
+
 
 Puppeteer::Puppeteer(const std::vector<std::string>& cmd_line)
 {
@@ -31,6 +35,13 @@ Puppeteer::Puppeteer(const std::vector<std::string>& cmd_line)
     solution_reader_ = std::make_unique<VTKSolutionReader>(init_cond_file);
     Logger::get().InfoMessage("Using initial conditions file " + init_cond_file);
   }
+
+  file_output_string_ = [&]() {
+    if (Options::get().solution_output_file().empty()) {
+      return Options::get().log_file();
+    }
+    return Options::get().solution_output_file();
+  }();
 
   //
   // construct the primary simulation components
@@ -48,6 +59,7 @@ Puppeteer::Puppeteer(const std::vector<std::string>& cmd_line)
   attachTimeObservers(*time_integrator_);
 
   time_integrator_->setNotifyFrequency(Event::TimeStepComplete, Options::get().log_frequency());
+  time_integrator_->setNotifyFrequency(Event::SolutionUpdate, Options::get().save_every());
 }
 
 
@@ -62,14 +74,7 @@ Puppeteer::run()
 
   time_integrator_->solve(*rhs_, *initial_conditions_);
 
-  const std::string vtk_output = [&]() {
-    if (Options::get().solution_output_file().empty()) {
-      return Options::get().log_file();
-    }
-    return Options::get().solution_output_file();
-  }();
-
-  write_solution_to_vtk(time_integrator_->getCurrentSolutionState(), *geom_, vtk_output);
+  write_solution_to_vtk(time_integrator_->getCurrentSolutionState(), *geom_, file_output_string_ + "_final");
 
   Logger::get().InfoMessage(Profiler::get().finalize());
 }
@@ -183,14 +188,29 @@ Puppeteer::attachSolutionObservers(TimeIntegrator& time_integrator, SpatialDiscr
         Logger::get().setSolutionMonitor(cahn_hilliard_solution_monitor(
             rhs, dynamic_cast<Discretization2DCart&>(geom), time_integrator.getCurrentSolutionState()));
       });
-      return;
+      break;
     case 3:
       time_integrator.registerObserver(Event::TimeStepComplete, [&]() {
         Logger::get().setSolutionMonitor(cahn_hilliard_solution_monitor(
             rhs, dynamic_cast<Discretization3DCart&>(geom), time_integrator.getCurrentSolutionState()));
       });
-      return;
+      break;
     default:
       Logger::get().FatalMessage("Only dimensions 2 and 3 supported.");
+  }
+
+  const int save_every = Options::get().save_every();
+
+  if (save_every) {
+    time_integrator.registerObserver(Event::SolutionUpdate, [&]() {
+      const int iterwidth = int(log10(Options::get().max_time_steps()) + 1);
+      std::string iterstring = boost::lexical_cast<std::string>(time_integrator.getCurrentStep());
+      iterstring.erase(std::remove(iterstring.begin(), iterstring.end(), ','), iterstring.end());
+
+      std::ostringstream ss;
+      ss << std::setw(iterwidth) << std::setfill('0') << iterstring;
+      write_solution_to_vtk(
+          time_integrator_->getCurrentSolutionState(), *geom_, file_output_string_ + "_step_" + ss.str());
+    });
   }
 }

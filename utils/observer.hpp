@@ -7,7 +7,7 @@
 #include "logger/profiler.hpp"
 
 /// event classifications mapping to the observer pattern
-enum class Event { TimeStepComplete };
+enum class Event { TimeStepComplete, SolutionUpdate };
 
 
 /**
@@ -22,7 +22,9 @@ class Observable {
   Observable()
   {
     observer_update_freq_[Event::TimeStepComplete]     = 1;
+    observer_update_freq_[Event::SolutionUpdate]       = 1;
     observer_n_notifications_[Event::TimeStepComplete] = 0;
+    observer_n_notifications_[Event::SolutionUpdate]   = 0;
   }
 
   virtual ~Observable() {}

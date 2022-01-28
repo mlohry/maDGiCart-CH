@@ -38,6 +38,7 @@ void TimeIntegrator::solve(TimeIntegrableRHS& rhs, InitialConditions& initial_co
     iter_++;
 
     notifyObservers(Event::TimeStepComplete);
+    notifyObservers(Event::SolutionUpdate);
 
     if (last_step) {
       break;

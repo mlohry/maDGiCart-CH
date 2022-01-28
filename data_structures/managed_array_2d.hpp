@@ -15,12 +15,12 @@ get1Dindex(int i, int j, int nhalo, int njhalo)
 template <typename T>
 class ManagedArray2DAccessor {
  public:
-  ManagedArray2DAccessor(T* const data, int nhalo_layers, int nihalo, int njhalo)
-      : data_(data), nhalo_layers_(nhalo_layers), nihalo_(nihalo), njhalo_(njhalo)
+  ManagedArray2DAccessor(Span<T> span1d, int nhalo_layers, int nihalo, int njhalo)
+      : span1d_(span1d), nhalo_layers_(nhalo_layers), nihalo_(nihalo), njhalo_(njhalo)
   {
   }
 
-  MADG_HOST_DEVICE inline T& operator()(int i, int j) const { return data_[idx1d(i, j)]; }
+  MADG_HOST_DEVICE inline T& operator()(int i, int j) const { return span1d_[idx1d(i, j)]; }
 
   MADG_HOST_DEVICE inline void getIJ(int idx, int& i, int& j) const
   {
@@ -29,7 +29,7 @@ class ManagedArray2DAccessor {
   }
 
  private:
-  T* const  data_;
+  Span<T> span1d_;
   const int nhalo_layers_;
   const int nihalo_;
   const int njhalo_;
@@ -49,21 +49,21 @@ class ManagedArray2D : private NonCopyable {
   virtual ~ManagedArray2D() = default;
 
 
-  auto readWriteHost() { return ManagedArray2DAccessor<T>(asArray().readWriteHost().data(), nhalo_, nihalo_, njhalo_); }
+  auto readWriteHost() { return ManagedArray2DAccessor<T>(asArray().readWriteHost(), nhalo_, nihalo_, njhalo_); }
 
-  auto writeHost() { return ManagedArray2DAccessor<T>(asArray().writeHost().data(), nhalo_, nihalo_, njhalo_); }
+  auto writeHost() { return ManagedArray2DAccessor<T>(asArray().writeHost(), nhalo_, nihalo_, njhalo_); }
 
-  auto readHost() const { return ManagedArray2DAccessor<T>(asArray().readHost().data(), nhalo_, nihalo_, njhalo_); }
+  auto readHost() const { return ManagedArray2DAccessor<T>(asArray().readHost(), nhalo_, nihalo_, njhalo_); }
 
 
   auto readWriteDevice()
   {
-    return ManagedArray2DAccessor<T>(asArray().readWriteDevice().data(), nhalo_, nihalo_, njhalo_);
+    return ManagedArray2DAccessor<T>(asArray().readWriteDevice(), nhalo_, nihalo_, njhalo_);
   }
 
-  auto writeDevice() { return ManagedArray2DAccessor<T>(asArray().writeDevice().data(), nhalo_, nihalo_, njhalo_); }
+  auto writeDevice() { return ManagedArray2DAccessor<T>(asArray().writeDevice(), nhalo_, nihalo_, njhalo_); }
 
-  auto readDevice() const { return ManagedArray2DAccessor<T>(asArray().readDevice().data(), nhalo_, nihalo_, njhalo_); }
+  auto readDevice() const { return ManagedArray2DAccessor<T>(asArray().readDevice(), nhalo_, nihalo_, njhalo_); }
 
 
   virtual const ManagedArray<T>& asArray() const = 0;
