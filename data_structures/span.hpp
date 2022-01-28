@@ -11,7 +11,13 @@ class Span
  public:
   Span(T* data, int_t size) : data_(data), size_(size) {}
 
-  MADG_HOST_DEVICE inline T& operator[](int_t i) const { return data_[i]; }
+  MADG_HOST_DEVICE inline T& operator[](int_t i) const {
+    #ifndef NDEBUG
+    assert(i >= 0);
+    assert(i < size_);
+    #endif
+    return data_[i];
+  }
 
   int_t size() const { return size_; }
   T* data() const { return data_; }
