@@ -26,6 +26,7 @@ class Options
   const std::string& initial_condition_file() const { return initial_condition_file_; }
   const std::string& log_file() const { return log_file_; }
   int                log_frequency() const { return log_frequency_; }
+  int                save_every() const { return save_every_; }
 
   // governing equations options
   const std::string& equation_type() const { return equation_type_; }
@@ -67,6 +68,7 @@ class Options
   std::string initial_condition_file_;
   std::string log_file_;
   int         log_frequency_;
+  int         save_every_;
 
   // governing_equations options
   std::string         equation_type_;
