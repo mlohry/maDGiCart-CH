@@ -35,11 +35,12 @@ class TimeIntegrator : public Observable {
 
   virtual void doTimeStep(TimeIntegrableRHS&, SolutionState&, SolutionState&, double time, double dt) = 0;
 
- protected:
-
   virtual int_t  getCurrentStep() const { return iter_; }
   virtual real_t getCurrentTime() const { return time_; }
   virtual real_t getTimeStepSize() const { return dt_; }
+
+ protected:
+
 
  private:
   TimeIntegrableRHS& rhs_;

@@ -29,6 +29,8 @@ class Puppeteer {
   std::unique_ptr<TimeIntegrator>        time_integrator_;
   std::unique_ptr<VTKSolutionReader>     solution_reader_;
 
+  std::string file_output_string_;
+
   static std::unique_ptr<TimeIntegrableRHS> rhsFactory(SpatialDiscretization&);
   std::unique_ptr<SpatialDiscretization>    geomFactory();
   std::unique_ptr<InitialConditions>        initialConditionsFactory();

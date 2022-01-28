@@ -93,7 +93,10 @@ ProgramOptionsParser::ProgramOptionsParser()
       "Solution output file name, without file extension.")(
       "log_frequency",
       po::value<int>(&Options::get().log_frequency_)->default_value(20),
-      "Logger update frequency.");
+      "Logger update frequency.")(
+      "save_every",
+      po::value<int>(&Options::get().save_every_)->default_value(0),
+      "If not zero, save a solution every N time step.");
 
   physics.add_options()(
       "equation_type",
