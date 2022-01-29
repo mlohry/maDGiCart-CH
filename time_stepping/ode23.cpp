@@ -2,7 +2,7 @@
 
 ODE23::ODE23(TimeIntegrableRHS& rhs, const TimeIntegratorOptions& opts)
     : TimeIntegrator(rhs, opts),
-      controller_(opts.time_rel_err_tol_)
+      controller_(opts)
 {
   k1_rhs_         = rhs.createSolutionState();
   k2_rhs_         = rhs.createSolutionState();
@@ -158,6 +158,7 @@ ODE23::PIDController::adaptStep(const double error_estimate, const double curren
     // restricts timestep from increasing by more than double or decreasing
     // by more than 1/10th between any two given timesteps.
     step = std::max(std::min(step, current_step * 1.1), current_step * 0.01);
+    step = std::max(std::min(step, maxstep_), minstep_);
     return step;
   }
 }
