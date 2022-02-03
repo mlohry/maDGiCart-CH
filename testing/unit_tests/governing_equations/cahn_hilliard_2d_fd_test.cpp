@@ -6,6 +6,7 @@
 #include "governing_equations/cahn_hilliard/cahn_hilliard_2d_fd.hpp"
 #include "spatial_discretization/discretization_2d_cart.hpp"
 #include "testing/utils/order_of_accuracy.hpp"
+#include "testing/utils/domain_generator.hpp"
 
 
 TEST(CahnHilliard, RHSEvaluation)
@@ -15,7 +16,7 @@ TEST(CahnHilliard, RHSEvaluation)
   const int              expected_order = 2;
 
   for (auto N : mesh_sizes) {
-    Discretization2DCart   geom(N, 2, -M_PI, M_PI, -M_PI);
+    Discretization2DCart   geom(generateTriplyPeriodicDomain(N));
     CahnHilliardParameters ch_params;
     CahnHilliard2DFD       ch_rhs(geom, ch_params);
 

@@ -1,28 +1,36 @@
 #include "discretization_3d_cart.hpp"
 
-Discretization3DCart::Discretization3DCart(int ni, int nhalo, double xbeg, double xend, double ybeg, double zbeg)
-    : SpatialDiscretization("Discretization3DCart"),
-      ni_(ni),
-      nhalo_(nhalo),
-      ninhalo_(ni + 2 * nhalo),
-      dx_((xend - xbeg) / real_wp(ni)),
-      interior_indices_(*this, "InteriorIndices", ni * ni * ni),
+
+
+Discretization3DCart::Discretization3DCart(const CartesianDomainDefinition& domain)
+    : SpatialDiscretization("Discretization3DCart", domain),
+      ni_(domain.nx),
+      nhalo_(domain.nhalo),
+      ninhalo_(ni_ + 2 * nhalo_),
+      dx_((domain.xend - domain.xbeg) / real_wp(ni_)),
+      interior_indices_(*this, "InteriorIndices", ni_ * ni_ * ni_),
       periodic_donor_indices_(*this, "PeriodicDonorIndices", (pow(ninhalo_, 3) - pow(ni_, 3))),
       periodic_receiver_indices_(*this, "PeriodicReceiverIndices", (pow(ninhalo_, 3) - pow(ni_, 3))),
-      x_coord_(*this, "CoordinateX", ni, ni, ni, nhalo),
-      y_coord_(*this, "CoordinateY", ni, ni, ni, nhalo),
-      z_coord_(*this, "CoordinateZ", ni, ni, ni, nhalo),
-      x_vertex_coord_(*this, "VertexCoordinateX", ni + 1, ni + 1, ni + 1, nhalo),
-      y_vertex_coord_(*this, "VertexCoordinateY", ni + 1, ni + 1, ni + 1, nhalo),
-      z_vertex_coord_(*this, "VertexCoordinateZ", ni + 1, ni + 1, ni + 1, nhalo)
+      xmin_indices_(*this, "XMinIndices", ninhalo_ * ninhalo_ * nhalo_),
+      xmax_indices_(*this, "XMaxIndices", ninhalo_ * ninhalo_ * nhalo_),
+      ymin_indices_(*this, "YMinIndices", ninhalo_ * ninhalo_ * nhalo_),
+      ymax_indices_(*this, "YMaxIndices", ninhalo_ * ninhalo_ * nhalo_),
+      zmin_indices_(*this, "ZMinIndices", ninhalo_ * ninhalo_ * nhalo_),
+      zmax_indices_(*this, "ZMaxIndices", ninhalo_ * ninhalo_ * nhalo_),
+      x_coord_(*this, "CoordinateX", ni_, ni_, ni_, nhalo_),
+      y_coord_(*this, "CoordinateY", ni_, ni_, ni_, nhalo_),
+      z_coord_(*this, "CoordinateZ", ni_, ni_, ni_, nhalo_),
+      x_vertex_coord_(*this, "VertexCoordinateX", ni_ + 1, ni_ + 1, ni_ + 1, nhalo_),
+      y_vertex_coord_(*this, "VertexCoordinateY", ni_ + 1, ni_ + 1, ni_ + 1, nhalo_),
+      z_vertex_coord_(*this, "VertexCoordinateZ", ni_ + 1, ni_ + 1, ni_ + 1, nhalo_)
 {
   {
     auto idx_list = write_access_host(interior_indices_);
     int  inode    = 0;
 
-    for (int i = 0; i < ni; ++i) {
-      for (int j = 0; j < ni; ++j) {
-        for (int k = 0; k < ni; ++k) {
+    for (int i = 0; i < ni_; ++i) {
+      for (int j = 0; j < ni_; ++j) {
+        for (int k = 0; k < ni_; ++k) {
           idx_list[inode] = get1DindexFrom3D(i, j, k, nhalo_, ninhalo_, ninhalo_);
           inode++;
         }
@@ -35,12 +43,12 @@ Discretization3DCart::Discretization3DCart(int ni, int nhalo, double xbeg, doubl
     auto yv = write_access_host(y_vertex_coord_);
     auto zv = write_access_host(z_vertex_coord_);
 
-    for (int i = -nhalo; i < ni + nhalo + 1; ++i) {
-      for (int j = -nhalo; j < ni + nhalo + 1; ++j) {
-        for (int k = -nhalo; k < ni + nhalo + 1; ++k) {
-          xv(i, j, k) = xbeg + dx_ * real_wp(i);
-          yv(i, j, k) = ybeg + dx_ * real_wp(j);
-          zv(i, j, k) = zbeg + dx_ * real_wp(k);
+    for (int i = -nhalo_; i < ni_ + nhalo_ + 1; ++i) {
+      for (int j = -nhalo_; j < ni_ + nhalo_ + 1; ++j) {
+        for (int k = -nhalo_; k < ni_ + nhalo_ + 1; ++k) {
+          xv(i, j, k) = domain.xbeg + dx_ * real_wp(i);
+          yv(i, j, k) = domain.ybeg + dx_ * real_wp(j);
+          zv(i, j, k) = domain.zbeg + dx_ * real_wp(k);
         }
       }
     }
@@ -51,16 +59,16 @@ Discretization3DCart::Discretization3DCart(int ni, int nhalo, double xbeg, doubl
     auto xv = read_access_host(x_vertex_coord_);
     auto yv = read_access_host(y_vertex_coord_);
     auto zv = read_access_host(z_vertex_coord_);
-    auto x = write_access_host(x_coord_);
-    auto y = write_access_host(y_coord_);
-    auto z = write_access_host(z_coord_);
+    auto x  = write_access_host(x_coord_);
+    auto y  = write_access_host(y_coord_);
+    auto z  = write_access_host(z_coord_);
 
-    for (int i = -nhalo; i < ni + nhalo; ++i) {
-      for (int j = -nhalo; j < ni + nhalo; ++j) {
-        for (int k = -nhalo; k < ni + nhalo; ++k) {
-          x(i, j, k) = 0.5*(xv(i, j, k) + xv(i+1, j, k));
-          y(i, j, k) = 0.5*(yv(i, j, k) + yv(i, j+1, k));
-          z(i, j, k) = 0.5*(zv(i, j, k) + zv(i, j, k+1));
+    for (int i = -nhalo_; i < ni_ + nhalo_; ++i) {
+      for (int j = -nhalo_; j < ni_ + nhalo_; ++j) {
+        for (int k = -nhalo_; k < ni_ + nhalo_; ++k) {
+          x(i, j, k) = 0.5 * (xv(i, j, k) + xv(i + 1, j, k));
+          y(i, j, k) = 0.5 * (yv(i, j, k) + yv(i, j + 1, k));
+          z(i, j, k) = 0.5 * (zv(i, j, k) + zv(i, j, k + 1));
         }
       }
     }
@@ -198,4 +206,85 @@ Discretization3DCart::applyPeriodicBoundaryConditions(ManagedArray3D<real_wp>& s
   auto receiver = read_access(periodic_receiver_indices_);
 
   maDGForAll(i, 0, donor.size(), { state[receiver[i]] = state[donor[i]]; });
+}
+
+
+void
+Discretization3DCart::applyNeumannBoundaryConditions(ManagedArray3D<real_wp>& state) const
+{
+  if (domain().xbc == BCType::Neumann){
+    applyNeumannBCX(state);
+  }
+  if (domain().ybc == BCType::Neumann){
+    applyNeumannBCY(state);
+  }
+  if (domain().zbc == BCType::Neumann){
+    applyNeumannBCZ(state);
+  }
+}
+
+void
+Discretization3DCart::applyNeumannBCX(ManagedArray3D<real_wp>& state_in) const
+{
+  profile();
+  auto state = read_write_access(state_in);
+
+  const auto ninhalo = ninhalo_;
+  const auto nhalo = nhalo_;
+  const auto ni = ni_;
+
+  maDGForAll(j, -nhalo, ninhalo, {
+    for (int k = -nhalo; k < ninhalo; ++k) {
+      for (int i = -nhalo; i < 0; ++i){
+        state(i, j, k) = state(0, j, k);
+      }
+      for (int i = ni; i < ninhalo; ++i){
+        state(i, j, k) = state(ni-1, j, k);
+      }
+    }
+  });
+}
+
+void
+Discretization3DCart::applyNeumannBCY(ManagedArray3D<real_wp>& state_in) const
+{
+  profile();
+  auto state = read_write_access(state_in);
+
+  const auto ninhalo = ninhalo_;
+  const auto nhalo = nhalo_;
+  const auto ni = ni_;
+
+  maDGForAll(i, -nhalo, ninhalo, {
+    for (int k = -nhalo; k < ninhalo; ++k) {
+      for (int j = -nhalo; j < 0; ++j){
+        state(i, j, k) = state(i, 0, k);
+      }
+      for (int j = ni; j < ninhalo; ++j){
+        state(i, j, k) = state(i, ni-1, k);
+      }
+    }
+  });
+}
+
+void
+Discretization3DCart::applyNeumannBCZ(ManagedArray3D<real_wp>& state_in) const
+{
+  profile();
+  auto state = read_write_access(state_in);
+
+  const auto ninhalo = ninhalo_;
+  const auto nhalo = nhalo_;
+  const auto ni = ni_;
+
+  maDGForAll(i, -nhalo, ninhalo, {
+    for (int j = -nhalo; j < ninhalo; ++j) {
+      for (int k = -nhalo; k < 0; ++k){
+        state(i, j, k) = state(i, j, 0);
+      }
+      for (int k = ni; k < ninhalo; ++k){
+        state(i, j, k) = state(i, j, ni-1);
+      }
+    }
+  });
 }

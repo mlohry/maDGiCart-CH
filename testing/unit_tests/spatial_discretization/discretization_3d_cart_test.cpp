@@ -6,6 +6,7 @@
 #include "data_structures/managed_array_3d.hpp"
 #include "spatial_discretization/discretization_3d_cart.hpp"
 #include "testing/utils/order_of_accuracy.hpp"
+#include "testing/utils/domain_generator.hpp"
 
 
 TEST(Discretiztion3DCart, DataStructures)
@@ -39,7 +40,7 @@ TEST(Discretiztion3DCart, Laplacian)
   const int              expected_order = 2;
 
   for (auto N : mesh_sizes) {
-    Discretization3DCart geom(N, 2, -M_PI, M_PI, -M_PI, -M_PI);
+    Discretization3DCart geom(generateTriplyPeriodicDomain(N));
     auto                 state = geom.createRealArray();
     auto                 del2  = geom.createRealArray();
 
@@ -88,7 +89,7 @@ TEST(Discretiztion3DCart, Biharmonic)
   const int              expected_order = 2;
 
   for (auto N : mesh_sizes) {
-    Discretization3DCart geom(N, 2, -M_PI, M_PI, -M_PI, -M_PI);
+    Discretization3DCart geom(generateTriplyPeriodicDomain(N));
     auto                 state = geom.createRealArray();
     auto                 del4  = geom.createRealArray();
 

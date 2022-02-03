@@ -124,7 +124,16 @@ ProgramOptionsParser::ProgramOptionsParser()
       "Cartesian mesh with [domain_resolution]^N nodes")(
       "dimension",
       po::value<int>(&Options::get().dimension_)->default_value(2),
-      "Spatial dimension, 2 or 3.");
+      "Spatial dimension, 2 or 3.")(
+      "bc_x",
+      po::value<std::string>(&Options::get().bc_x_)->default_value("periodic"),
+      "Boundary condition in x-direction, periodic or neumann. Only for 3D.")(
+      "bc_y",
+      po::value<std::string>(&Options::get().bc_y_)->default_value("periodic"),
+      "Boundary condition in y-direction, periodic or neumann. Only for 3D.")(
+      "bc_z",
+      po::value<std::string>(&Options::get().bc_z_)->default_value("periodic"),
+      "Boundary condition in z-direction, periodic or neumann. Only for 3D.");
 
   time_stepping.add_options()(
       "time_integrator",

@@ -19,11 +19,14 @@ CahnHilliard3DFD::evalRHSImpl(const SolutionState& flovars, double time, Solutio
   const CahnHilliardState3D& state = dynamic_cast<const CahnHilliardState3D&>(flovars);
 
   geom_.applyPeriodicBoundaryConditions(const_cast<ManagedArray3DNonOwning<real_wp>&>(state.c()));
+  geom_.applyNeumannBoundaryConditions(const_cast<ManagedArray3DNonOwning<real_wp>&>(state.c()));
 
   /**
    * Compute  laplacian(u*c^3 -b*c)
    */
   {
+
+
     auto c     = read_access(state.c().asArray());
     auto del2f = write_access(laplacian_argument_->asArray());
 

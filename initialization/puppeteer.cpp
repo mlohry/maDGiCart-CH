@@ -17,9 +17,9 @@
 #include "time_stepping/time_integrator_options.hpp"
 #include "utils/registry.hpp"
 
-#include <iomanip>
-#include <boost/lexical_cast.hpp>
 #include <algorithm>
+#include <boost/lexical_cast.hpp>
+#include <iomanip>
 
 
 Puppeteer::Puppeteer(const std::vector<std::string>& cmd_line)
@@ -79,12 +79,25 @@ Puppeteer::run()
   Logger::get().InfoMessage(Profiler::get().finalize());
 }
 
+namespace {
+BCType
+parseBC(const std::string bcstr)
+{
+  if (bcstr == "periodic") {
+    return BCType::Periodic;
+  }
+  if (bcstr == "neumann") {
+    return BCType::Neumann;
+  }
+  Logger::get().FatalMessage("BC type string " + bcstr + " not recognized.");
+  abort();
+}
+}  // namespace
+
 
 std::unique_ptr<SpatialDiscretization>
 Puppeteer::geomFactory()
 {
-  const int nhalo = 2;  // should be dependent on equation and order / stencil size
-
   CartesianDomainDefinition domain;
 
   if (solution_reader_) {
@@ -100,12 +113,18 @@ Puppeteer::geomFactory()
     domain.zbeg = Options::get().domain_x_begin();
   }
 
+  domain.nhalo = 2;  // should be dependent on equation and order / stencil size
+
+  domain.xbc = parseBC(Options::get().bc_x());
+  domain.ybc = parseBC(Options::get().bc_y());
+  domain.zbc = parseBC(Options::get().bc_z());
+
   const int dim = Options::get().dimension();
   switch (dim) {
     case 2:
-      return std::make_unique<Discretization2DCart>(domain, nhalo);
+      return std::make_unique<Discretization2DCart>(domain);
     case 3:
-      return std::make_unique<Discretization3DCart>(domain, nhalo);
+      return std::make_unique<Discretization3DCart>(domain);
     default:
       Logger::get().FatalMessage("Only dimensions 2 and 3 supported.");
   }
@@ -203,7 +222,7 @@ Puppeteer::attachSolutionObservers(TimeIntegrator& time_integrator, SpatialDiscr
 
   if (save_every) {
     time_integrator.registerObserver(Event::SolutionUpdate, [&]() {
-      const int iterwidth = int(log10(Options::get().max_time_steps()) + 1);
+      const int   iterwidth  = int(log10(Options::get().max_time_steps()) + 1);
       std::string iterstring = boost::lexical_cast<std::string>(time_integrator.getCurrentStep());
       iterstring.erase(std::remove(iterstring.begin(), iterstring.end(), ','), iterstring.end());
 

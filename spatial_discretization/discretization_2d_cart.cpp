@@ -2,25 +2,25 @@
 
 #include <memory>
 
-Discretization2DCart::Discretization2DCart(int ni, int nhalo, double xbeg, double xend, double ybeg)
-    : SpatialDiscretization("Discretization2DCart"),
-      ni_(ni),
-      nhalo_(nhalo),
-      ninhalo_(ni + 2 * nhalo),
-      dx_((xend - xbeg) / real_wp(ni)),
-      interior_indices_(*this, "InteriorIndices", ni * ni),
-      boundary_indices_(*this, "BoundaryIndices", (ni + 2 * nhalo) * nhalo_ * 2 + ni * nhalo_ * 2),
-      x_coord_(*this, "CoordinateX", ni, ni, nhalo),
-      y_coord_(*this, "CoordinateY", ni, ni, nhalo),
-      x_vertex_coord_(*this, "VertexCoordinateX", ni + 1, ni + 1, nhalo),
-      y_vertex_coord_(*this, "VertexCoordinateY", ni + 1, ni + 1, nhalo)
+Discretization2DCart::Discretization2DCart(const CartesianDomainDefinition& domain)
+    : SpatialDiscretization("Discretization2DCart", domain),
+      ni_(domain.nx),
+      nhalo_(domain.nhalo),
+      ninhalo_(ni_ + 2 * nhalo_),
+      dx_((domain.xend - domain.xbeg) / real_wp(ni_)),
+      interior_indices_(*this, "InteriorIndices", ni_ * ni_),
+      boundary_indices_(*this, "BoundaryIndices", (ni_ + 2 * nhalo_) * nhalo_ * 2 + ni_ * nhalo_ * 2),
+      x_coord_(*this, "CoordinateX", ni_, ni_, nhalo_),
+      y_coord_(*this, "CoordinateY", ni_, ni_, nhalo_),
+      x_vertex_coord_(*this, "VertexCoordinateX", ni_ + 1, ni_ + 1, nhalo_),
+      y_vertex_coord_(*this, "VertexCoordinateY", ni_ + 1, ni_ + 1, nhalo_)
 {
   {
     auto idx_list = write_access_host(interior_indices_);
     int  inode    = 0;
 
-    for (int i = 0; i < ni; ++i) {
-      for (int j = 0; j < ni; ++j) {
+    for (int i = 0; i < ni_; ++i) {
+      for (int j = 0; j < ni_; ++j) {
         idx_list[inode] = get1Dindex(i, j, nhalo_, ninhalo_);
         inode++;
       }
@@ -31,32 +31,32 @@ Discretization2DCart::Discretization2DCart(int ni, int nhalo, double xbeg, doubl
     int ibcnode = 0;
     // bottom rows including corners
     auto bc_list = write_access_host(boundary_indices_);
-    for (int j = -nhalo; j < 0; ++j) {
-      for (int i = -nhalo; i < ni + nhalo; ++i) {
+    for (int j = -nhalo_; j < 0; ++j) {
+      for (int i = -nhalo_; i < ni_ + nhalo_; ++i) {
         bc_list[ibcnode] = get1Dindex(i, j, nhalo_, ninhalo_);
         ibcnode++;
       }
     }
 
     // top rows including corners
-    for (int j = ni; j < ni + nhalo; ++j) {
-      for (int i = -nhalo; i < ni + nhalo; ++i) {
+    for (int j = ni_; j < ni_ + nhalo_; ++j) {
+      for (int i = -nhalo_; i < ni_ + nhalo_; ++i) {
         bc_list[ibcnode] = get1Dindex(i, j, nhalo_, ninhalo_);
         ibcnode++;
       }
     }
 
     // left excluding corners
-    for (int i = -nhalo; i < 0; ++i) {
-      for (int j = 0; j < ni; ++j) {
+    for (int i = -nhalo_; i < 0; ++i) {
+      for (int j = 0; j < ni_; ++j) {
         bc_list[ibcnode] = get1Dindex(i, j, nhalo_, ninhalo_);
         ibcnode++;
       }
     }
 
     // right excluding corners
-    for (int i = ni; i < ni + nhalo; ++i) {
-      for (int j = 0; j < ni; ++j) {
+    for (int i = ni_; i < ni_ + nhalo_; ++i) {
+      for (int j = 0; j < ni_; ++j) {
         bc_list[ibcnode] = get1Dindex(i, j, nhalo_, ninhalo_);
         ibcnode++;
       }
@@ -67,10 +67,10 @@ Discretization2DCart::Discretization2DCart(int ni, int nhalo, double xbeg, doubl
     auto xv = write_access_host(x_vertex_coord_);
     auto yv = write_access_host(y_vertex_coord_);
 
-    for (int i = -nhalo; i < ni + nhalo + 1; ++i) {
-      for (int j = -nhalo; j < ni + nhalo + 1; ++j) {
-        xv(i, j) = xbeg + dx_ * real_wp(i);
-        yv(i, j) = ybeg + dx_ * real_wp(j);
+    for (int i = -nhalo_; i < ni_ + nhalo_ + 1; ++i) {
+      for (int j = -nhalo_; j < ni_ + nhalo_ + 1; ++j) {
+        xv(i, j) = domain.xbeg + dx_ * real_wp(i);
+        yv(i, j) = domain.ybeg + dx_ * real_wp(j);
       }
     }
   }
@@ -81,8 +81,8 @@ Discretization2DCart::Discretization2DCart(int ni, int nhalo, double xbeg, doubl
     auto x  = write_access_host(x_coord_);
     auto y  = write_access_host(y_coord_);
 
-    for (int i = -nhalo; i < ni + nhalo; ++i) {
-      for (int j = -nhalo; j < ni + nhalo; ++j) {
+    for (int i = -nhalo_; i < ni_ + nhalo_; ++i) {
+      for (int j = -nhalo_; j < ni_ + nhalo_; ++j) {
         x(i, j) = 0.5 * (xv(i, j) + xv(i + 1, j));
         y(i, j) = 0.5 * (yv(i, j) + yv(i, j + 1));
       }
