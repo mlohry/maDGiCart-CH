@@ -84,7 +84,11 @@ class ODE23 : public TimeIntegrator {
     const double maxstep_;
     const double errest_order_ = 2;
     const double safety_       = 1.0;
-    // controller gains for PID timestep controller
+    /*
+     * Controller gains for PID timestep controller taken from
+     * "Additive Runge-Kutta Schemes for Convection-Diffusion-Reaction Equations"
+     * Kennedy & Carpenter, NASA/TM-2001-211038
+     */
     const double kI = 0.25, kP = 0.14, kD = 0.10;
 
 
