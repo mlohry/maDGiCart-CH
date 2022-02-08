@@ -6,6 +6,7 @@
 #include "governing_equations/cahn_hilliard/cahn_hilliard_3d_fd.hpp"
 #include "spatial_discretization/discretization_3d_cart.hpp"
 #include "testing/utils/order_of_accuracy.hpp"
+#include "testing/utils/domain_generator.hpp"
 
 #include "file_io/vtk_solution_writer.hpp"
 #include "governing_equations/cahn_hilliard/cahn_hilliard_initial_conditions.hpp"
@@ -21,7 +22,7 @@ TEST(CahnHilliard3D, RHSEvaluation)
   const int              expected_order = 2;
 
   for (auto N : mesh_sizes) {
-    Discretization3DCart   geom(N, 2, -M_PI, M_PI, -M_PI, -M_PI);
+    Discretization3DCart   geom(generateTriplyPeriodicDomain(N));
     CahnHilliardParameters ch_params;
     CahnHilliard3DFD       ch_rhs(geom, ch_params);
 

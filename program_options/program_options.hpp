@@ -30,7 +30,6 @@ class Options
 
   // governing equations options
   const std::string& equation_type() const { return equation_type_; }
-  // double ch_chi() const { return ch_chi_; }
   double ch_m() const { return ch_m_; }
   double ch_eps2() const { return ch_eps2_; }
   double ch_sigma() const { return ch_sigma_; }
@@ -41,6 +40,9 @@ class Options
   double domain_x_end() const { return domain_x_end_; }
   int    domain_resolution() const { return domain_resolution_; }
   int    dimension() const { return dimension_; }
+  const std::string& bc_x() const { return bc_x_; }
+  const std::string& bc_y() const { return bc_y_; }
+  const std::string& bc_z() const { return bc_z_; }
   
   // time stepping options
   const std::string& time_integrator() const { return time_integrator_; }
@@ -81,6 +83,9 @@ class Options
   double domain_x_end_;
   int domain_resolution_;
   int dimension_;
+  std::string bc_x_;
+  std::string bc_y_;
+  std::string bc_z_;
 
   // time stepping options
   std::string time_integrator_;

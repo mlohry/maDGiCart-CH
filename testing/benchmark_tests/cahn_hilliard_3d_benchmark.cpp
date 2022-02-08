@@ -25,7 +25,18 @@ class CahnHilliard3DFixture : public celero::TestFixture {
   virtual void setUp(const celero::TestFixture::ExperimentValue& experimentValue)
   {
     this->gridsize_ = experimentValue.Value;
-    geom_           = std::make_unique<Discretization3DCart>(this->gridsize_, 2, 0, 1, 0, 0);
+
+    CartesianDomainDefinition domain;
+    domain.nx = domain.ny = domain.nz = this->gridsize_;
+    domain.xbc = domain.ybc = domain.zbc = BCType::Periodic;
+
+    domain.xbeg  = 0;
+    domain.xend  = 1;
+    domain.ybeg  = 0;
+    domain.zbeg  = 0;
+    domain.nhalo = 2;
+
+    geom_ = std::make_unique<Discretization3DCart>(domain);
 
     CahnHilliardParameters ch_params;
     ch_rhs_ = std::make_unique<CahnHilliard3DFD>(*geom_, ch_params);

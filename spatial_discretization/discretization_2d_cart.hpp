@@ -6,13 +6,8 @@
 
 class Discretization2DCart : public SpatialDiscretization {
  public:
-  Discretization2DCart(int ni, int nhalo, double xbeg, double xend, double ybeg);
 
-  Discretization2DCart(const CartesianDomainDefinition& domain, int nhalo)
-      : Discretization2DCart(domain.nx, nhalo, domain.xbeg, domain.xend, domain.ybeg)
-  {
-  }
-
+  Discretization2DCart(const CartesianDomainDefinition& domain);
 
   ~Discretization2DCart() = default;
 

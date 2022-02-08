@@ -5,6 +5,7 @@
 #include "data_structures/exec_includes.hpp"
 #include "spatial_discretization/discretization_2d_cart.hpp"
 #include "testing/utils/order_of_accuracy.hpp"
+#include "testing/utils/domain_generator.hpp"
 
 
 TEST(Discretization2DCart, Laplacian)
@@ -14,7 +15,7 @@ TEST(Discretization2DCart, Laplacian)
   const int              expected_order = 2;
 
   for (auto N : mesh_sizes) {
-    Discretization2DCart geom(N, 2, -M_PI, M_PI, -M_PI);
+    Discretization2DCart geom(generateTriplyPeriodicDomain(N));
     auto state = geom.createRealArray();
     auto del2  = geom.createRealArray();
 
@@ -61,7 +62,7 @@ TEST(Discretization2DCart, Biharmonic)
   const int              expected_order = 2;
 
   for (auto N : mesh_sizes) {
-    Discretization2DCart geom(N, 2, -M_PI, M_PI, -M_PI);
+    Discretization2DCart geom(generateTriplyPeriodicDomain(N));
     auto state = geom.createRealArray();
     auto del4  = geom.createRealArray();
 

@@ -21,8 +21,16 @@ TEST(FileIO, Discretization2DCartWriteAndRead)
   const double xend  = 3;
   const double ybeg  = -1;
 
+  CartesianDomainDefinition domain;
+  domain.nx = domain.ny = domain.nz = N;
 
-  Discretization2DCart   geom(N, Nhalo, xbeg, xend, ybeg);
+  domain.xbeg  = xbeg;
+  domain.xend  = xend;
+  domain.ybeg  = ybeg;
+  domain.nhalo = Nhalo;
+
+
+  Discretization2DCart   geom(domain);
   CahnHilliardParameters ch_params;
   CahnHilliard2DFD       rhs(geom, ch_params);
 
@@ -93,8 +101,16 @@ TEST(FileIO, Discretization3DCartWriteAndRead)
   const double ybeg  = -1;
   const double zbeg  = 1;
 
+  CartesianDomainDefinition domain;
+  domain.nx = domain.ny = domain.nz = N;
 
-  Discretization3DCart   geom(N, Nhalo, xbeg, xend, ybeg, zbeg);
+  domain.xbeg  = xbeg;
+  domain.xend  = xend;
+  domain.ybeg  = ybeg;
+  domain.zbeg  = zbeg;
+  domain.nhalo = Nhalo;
+
+  Discretization3DCart   geom(domain);
   CahnHilliardParameters ch_params;
   CahnHilliard3DFD       rhs(geom, ch_params);
 
