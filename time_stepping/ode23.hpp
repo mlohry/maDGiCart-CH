@@ -16,7 +16,7 @@ class ODE23 : public TimeIntegrator {
   ODE23(TimeIntegrableRHS& rhs, const TimeIntegratorOptions& opts);
 
   void doTimeStep(TimeIntegrableRHS& rhs, SolutionState& state, SolutionState& dstate_dt, double time, double dt)
-  override;
+      override;
 
 
   std::vector<std::pair<std::string, double>> getIterationStatus() const override
@@ -38,7 +38,7 @@ class ODE23 : public TimeIntegrator {
   std::unique_ptr<SolutionState> k4_rhs_;
   std::unique_ptr<SolutionState> stage_solution_;
 
-  bool first_step_;
+  bool   first_step_;
   double error_estimate_;
 
   // Butcher tableau coefficients
@@ -69,18 +69,26 @@ class ODE23 : public TimeIntegrator {
   double computeNextDT(double current_dt) override;
 
 
-  class PIDController
-  {
+  class PIDController {
    public:
-    PIDController(double reltol) : errtol_(reltol) {}
+    PIDController(TimeIntegratorOptions opts)
+        : errtol_(opts.time_rel_err_tol_), minstep_(opts.min_time_step_size_), maxstep_(opts.max_time_step_size_)
+    {
+    }
 
     double adaptStep(const double error_estimate, const double current_step);
 
    private:
     const double errtol_;
+    const double minstep_;
+    const double maxstep_;
     const double errest_order_ = 2;
-    const double safety_ = 1.0;
-    // controller gains for PID timestep controller
+    const double safety_       = 1.0;
+    /*
+     * Controller gains for PID timestep controller taken from
+     * "Additive Runge-Kutta Schemes for Convection-Diffusion-Reaction Equations"
+     * Kennedy & Carpenter, NASA/TM-2001-211038
+     */
     const double kI = 0.25, kP = 0.14, kD = 0.10;
 
 

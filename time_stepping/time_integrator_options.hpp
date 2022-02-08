@@ -19,7 +19,6 @@ class TimeIntegratorOptions
   int_t       max_time_steps_;
   int_t       initial_step_ = 0;
   real_t      cfl_;
-  real_t      time_abs_err_tol_;
   real_t      time_rel_err_tol_;
   bool        use_adaptive_time_step_;
   real_t      min_time_step_size_;
@@ -60,11 +59,6 @@ class TimeIntegratorOptions
   TimeIntegratorOptions& cfl(real_t c)
   {
     cfl_ = c;
-    return *this;
-  }
-  TimeIntegratorOptions& abs_err_tol(real_t a)
-  {
-    time_abs_err_tol_ = a;
     return *this;
   }
   TimeIntegratorOptions& rel_err_tol(real_t r)
@@ -109,7 +103,6 @@ inline TimeIntegratorOptions getTimeOptionsUsingGlobalOptions()
       .use_cfl_time_step(Options::get().use_cfl_time_step())
       .max_time_steps(Options::get().max_time_steps())
       .cfl(Options::get().cfl())
-      .abs_err_tol(Options::get().time_abs_err_tol())
       .rel_err_tol(Options::get().time_rel_err_tol())
       .use_adaptive_time_step(Options::get().use_adaptive_time_step())
       .min_time_step_size(Options::get().min_time_step_size())
