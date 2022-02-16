@@ -79,7 +79,11 @@ def main_3d_single_run( outdir : str , builddir : str , m : float = None , X : f
                         "--dimension" , "3" ,
                         "--max_time_steps"  , "100000" , 
                         "--time_integrator" , "ode23" ,
-                        "--converged_rel_tol" , "1e-6" ,
+                        "--save_every" , "10000" , 
+                        "--converged_rel_tol" , "1e-4" ,
+                        "--time_rel_err_tol" , "1e-2" ,
+                        "--domain_resolution" , "64" ,
+                        "--time_step_size" , "1e-6" , 
                         "--m"     , str(mi) ,
                         "--eps2"  , str(eps2) ,
                         "--sigma" , str(sigma) ] )
@@ -99,9 +103,13 @@ def main_3d_single_run_from_file( outdir : str , builddir : str , m : float , X 
 
     subprocess.run( [ builddir + "/maDGiCart" ,
                         "--dimension" , "3" ,
-                        "--max_time_steps"  , "10000" , 
+                        "--max_time_steps"  , "10000" ,
+                        "--save_every" , "250" , 
                         "--time_integrator" , "ode23" ,
                         "--converged_rel_tol" , "1e-4" ,
+                        "--time_rel_err_tol" , "1e-2" ,
+                        "--domain_resolution" , "128" ,
+                        "--time_step_size" , "1e-6" , 
                         "--initial_condition_file" , initial_condition_file ,
                         "--m"     , str(m) ,
                         "--eps2"  , str(eps2) ,
@@ -111,14 +119,10 @@ def main_3d_single_run_from_file( outdir : str , builddir : str , m : float , X 
 
 if __name__ == "__main__":
 
-    #outdir    = sys.argv[1]
-    #builddir  = sys.argv[2]
-
-    #main_3d_single_run( outdir , builddir )
+    outdir    = sys.argv[1]
+    builddir  = sys.argv[2]
+    ic        = sys.argv[3]
     
-    outdir   = '/home/adegennaro/Projects/appmath/madgicartCH-postproc/data/stacked_m0p4_X0p15'
-    builddir = '/home/adegennaro/Projects/appmath/maDGiCart-CH-build'
-
-    main_3d_single_run_from_file( outdir , builddir , 0.4 , 0.15305960080040307 , 
-        '/home/adegennaro/Projects/appmath/madgicartCH-postproc/data/stacked_m0p4_X0p15/c_stack_cube_m0p4_ascii.vts' )
-
+    main_3d_single_run_from_file( outdir , builddir , 0.4 , 0.15 , ic )
+    #main_3d_single_run( outdir , builddir , 0.4 , 0.15 )
+    
