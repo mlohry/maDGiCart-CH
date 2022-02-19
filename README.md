@@ -4,6 +4,21 @@
 ![unit_test_ubuntu_20.04_github_runner_openmp](https://github.com/mlohry/maDGiCart-CH/actions/workflows/unit_test_github_runner_openmp.yml/badge.svg?branch=master)
 ![unit_test_ubuntu_20.04_github_runner_cuda_](https://github.com/mlohry/maDGiCart-CH/actions/workflows/unit_test_github_runner_cuda.yml/badge.svg?branch=master)
 
+## Introduction
+
+An implementation of non-local Cahn-Hilliard equations in 2D and 3D on Cartesian grids. Runs on serial CPU, OpenMP-parallelized CPU, and CUDA-enabled GPU.
+
+
+The main field that evolves is relative concentration of the primary phase at the mesoscale of a block copolymer, which occurs through a modified 2D Cahn Hilliard equation:
+
+<img src="https://github.com/mlohry/maDGiCart-CH/blob/master/.github/figs/cheqn.gif">
+
+A sample evolution produced with the command line below for a 3D configuration (click for youtube video):
+
+
+[![A sample evolution produced with the command line below for a 3D configuration](https://github.com/mlohry/maDGiCart-CH/blob/master/.github/figs/chimages.0999.png)](https://www.youtube.com/watch?v=_-25dzpj4Lo "A sample evolution produced with the command line below for a 3D configuration")
+
+
 ## Running
 
 After compilation, unit tests and a sample solution can be run with
