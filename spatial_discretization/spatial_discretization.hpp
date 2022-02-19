@@ -2,6 +2,7 @@
 
 #include "data_structures/managed_array_owner.hpp"
 
+
 enum class BCType { Periodic, Neumann };
 
 struct CartesianDomainDefinition {

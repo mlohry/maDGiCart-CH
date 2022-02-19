@@ -4,16 +4,11 @@
 #include "utils/uniquely_named_object.hpp"
 
 
-class ManagedArrayOwner  //: public UniquelyNamedObject<ManagedArrayOwner>, private NonCopyable
-    : private NonCopyable
-{
+class ManagedArrayOwner : private NonCopyable {
  public:
+  ManagedArrayOwner() {}
 
-  ManagedArrayOwner(){}
-
-  explicit ManagedArrayOwner(const std::string& name) : name_(name)
-  {
-  }
+  explicit ManagedArrayOwner(const std::string& name) : name_(name) {}
 
   virtual ~ManagedArrayOwner() = default;
 

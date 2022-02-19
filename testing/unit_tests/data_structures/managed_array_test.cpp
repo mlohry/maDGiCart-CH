@@ -15,11 +15,13 @@ TEST(ManagedArray, BoundsCheckAssertionDebug)
   ASSERT_DEATH(
       {
         const real_wp x = array_read[-1];
+        std::cout << x << "\n";
       },
       "");
   ASSERT_DEATH(
       {
         const real_wp x = array_read[N];
+        std::cout << x << "\n";
       },
       "");
 
@@ -28,11 +30,13 @@ TEST(ManagedArray, BoundsCheckAssertionDebug)
   ASSERT_DEATH(
       {
         const real_wp x = array_read_device[-1];
+        std::cout << x << "\n";
       },
       "");
   ASSERT_DEATH(
       {
         const real_wp x = array_read_device[N];
+        std::cout << x << "\n";
       },
       "");
 #endif

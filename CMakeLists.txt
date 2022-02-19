@@ -72,9 +72,9 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release")
 endif()
 
 
-set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -Wall -Werror -Wno-error=unused-function -Wno-error=sign-compare -Wno-int-in-bool-context -Werror=reorder  ${STD_FLAG} ${FP_PRECISION_FLAG} ${OpenMP_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -Wall -Werror -Wno-error=unused-function -Wno-error=sign-compare -Wno-int-in-bool-context -Werror=reorder -fsanitize=address -fno-omit-frame-pointer ${STD_FLAG} ${FP_PRECISION_FLAG} ${OpenMP_CXX_FLAGS}")
 
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -g -Wall -Werror ${STD_FLAG} ${FP_PRECISION_FLAG} -march=native ${OpenMP_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -g -Wall -Werror -Wno-error=maybe-uninitialized ${STD_FLAG} ${FP_PRECISION_FLAG} -march=native ${OpenMP_CXX_FLAGS}")
 
 
 set(EXTERNAL_INSTALL_DIR ${CMAKE_BINARY_DIR}/external_install)

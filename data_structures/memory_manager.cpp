@@ -55,6 +55,7 @@ MemoryManager<BaseType>::allocate(const std::string& unique_name, size_t size)
 
 #ifdef MADG_USE_CUDA
   BaseType* gpu_data;
+
   cudaErrorCheck(cudaMalloc((void**)&gpu_data, size * sizeof(BaseType)));
 
   device_data_.insert(std::pair<MapKeyType, BaseType*>(curr_index_, gpu_data));

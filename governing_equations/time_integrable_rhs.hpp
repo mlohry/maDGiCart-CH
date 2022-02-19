@@ -5,12 +5,13 @@
 #include <vector>
 
 #include "utils/observer.hpp"
+#include "utils/noncopyable.hpp"
 
 #include "typedefs.hpp"
 #include "data_structures/solution_state.hpp"
 
 
-class TimeIntegrableRHS : public Observable
+class TimeIntegrableRHS : public Observable, private NonCopyable
 {
  public:
   virtual ~TimeIntegrableRHS() = default;
