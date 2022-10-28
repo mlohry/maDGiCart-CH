@@ -23,7 +23,8 @@ class ManagedArray final : public UniquelyNamedObject<ManagedArray<T>>, private 
         sync_status_(SyncStatus::InSync)
   {
     auto arr = writeHost();
-    maDGForAllHost(i, 0, size, { arr[i] = std::numeric_limits<T>::signaling_NaN(); });
+//    maDGForAllHost(i, 0, size, { arr[i] = std::numeric_limits<T>::signaling_NaN(); });
+    maDGForAllHost(i, 0, size, { arr[i] = 0.0; });
   }
 
   ManagedArray(const ManagedArrayOwner& owner, const std::string& array_name, Span<T> initial_value)

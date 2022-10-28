@@ -110,7 +110,10 @@ ProgramOptionsParser::ProgramOptionsParser()
       "epsilon^2, the biharmonic coefficient.")(
       "sigma",
       po::value<double>(&Options::get().ch_sigma_)->default_value(291.4488109293305),
-      "sigma, the coefficient of the linearly stabilizing term about m.");
+      "sigma, the coefficient of the linearly stabilizing term about m.")(
+      "use_fused_kernels",
+      po::value<bool>(&Options::get().use_fused_kernels_)->default_value(false),
+      "Use fused kernels for 3D CH");
 
   discretization.add_options()(
       "domain_x_begin",
