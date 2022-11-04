@@ -5,6 +5,8 @@ include(ExternalProject)
 
 find_package(Boost REQUIRED COMPONENTS regex program_options log log_setup filesystem thread)
 
+find_package(MKL CONFIG REQUIRED)
+
 set(CXX_COMPILER_STRING "${CMAKE_CXX_COMPILER} ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
 add_definitions(-DCXX_COMPILER_STRING="${CXX_COMPILER_STRING}")
 add_definitions(-DBOOST_LOG_DYN_LINK)
@@ -74,6 +76,7 @@ endif()
 
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -Wall -Werror -Wno-error=unused-function -Wno-error=sign-compare -Wno-int-in-bool-context -Werror=reorder -fsanitize=address -fno-omit-frame-pointer ${STD_FLAG} ${FP_PRECISION_FLAG} ${OpenMP_CXX_FLAGS}")
 
+#set(CMAKE_CXX_FLAGS_RELEASE "-O3 -g -Wall -Werror -Wno-error=maybe-uninitialized ${STD_FLAG} ${FP_PRECISION_FLAG} -march=native ${OpenMP_CXX_FLAGS} -ftree-vectorize -ftree-vectorizer-verbose=1")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -g -Wall -Werror -Wno-error=maybe-uninitialized ${STD_FLAG} ${FP_PRECISION_FLAG} -march=native ${OpenMP_CXX_FLAGS}")
 
 
