@@ -112,7 +112,7 @@ ProgramOptionsParser::ProgramOptionsParser()
       po::value<double>(&Options::get().ch_sigma_)->default_value(291.4488109293305),
       "sigma, the coefficient of the linearly stabilizing term about m.")(
       "kernel_variant",
-      po::value<int>(&Options::get().kernel_variant_)->default_value(0),
+      po::value<int>(&Options::get().kernel_variant_)->default_value(1),
       "Variant of the kernel in 3D CH for performance testing.");
 
   discretization.add_options()(
