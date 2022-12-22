@@ -5,8 +5,6 @@ include(ExternalProject)
 
 find_package(Boost REQUIRED COMPONENTS regex program_options log log_setup filesystem thread)
 
-find_package(MKL CONFIG REQUIRED)
-
 set(CXX_COMPILER_STRING "${CMAKE_CXX_COMPILER} ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
 add_definitions(-DCXX_COMPILER_STRING="${CXX_COMPILER_STRING}")
 add_definitions(-DBOOST_LOG_DYN_LINK)
