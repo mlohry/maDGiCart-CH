@@ -23,9 +23,13 @@ class CahnHilliard3DFD : public CahnHilliardBase {
 
   const IndexArray& interiorIndices() const override { return geom_.interiorIndices(); }
 
+  void evalRHSBasic(const SolutionState& flovars, double time, SolutionState& rhs);
+  void evalRHSFused(const SolutionState& flovars, double time, SolutionState& rhs);
+  void evalRHSFullyFused(const SolutionState& flovars, double time, SolutionState& rhs);
+
  private:
   Discretization3DCart& geom_;
-  const bool use_fused_kernels_;
+  const int kernel_variant_;
 
   std::unique_ptr<ManagedArray3D<real_wp>> laplacian_rhs_term_;
   std::unique_ptr<ManagedArray3D<real_wp>> laplacian_argument_;
@@ -33,6 +37,4 @@ class CahnHilliard3DFD : public CahnHilliardBase {
   std::unique_ptr<ManagedArray3D<real_wp>> linear_term_;
 
 
-  void evalRHSBasic(const SolutionState& flovars, double time, SolutionState& rhs);
-  void evalRHSFused(const SolutionState& flovars, double time, SolutionState& rhs);
 };

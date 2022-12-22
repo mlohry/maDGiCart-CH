@@ -5,22 +5,30 @@
 
 
 CahnHilliard3DFD::CahnHilliard3DFD(Discretization3DCart& geom, const CahnHilliardParameters& params)
-    : CahnHilliardBase(params), geom_(geom), use_fused_kernels_(Options::get().use_fused_kernels())
+    : CahnHilliardBase(params), geom_(geom), kernel_variant_(Options::get().kernel_variant())
 {
   laplacian_rhs_term_ = geom_.createRealArray();
   laplacian_argument_ = geom_.createRealArray();
   biharmonic_term_    = geom_.createRealArray();
   linear_term_        = geom_.createRealArray();
+
+  Logger::get().FatalAssert(kernel_variant_ >= 0 && kernel_variant_ <= 2, "kernel_variant must be between 0 and 2.");
 }
 
 
 void
 CahnHilliard3DFD::evalRHSImpl(const SolutionState& flovars, double time, SolutionState& rhs)
 {
-  if (use_fused_kernels_){
-    evalRHSFused(flovars, time, rhs);
-  } else {
-    evalRHSBasic(flovars, time, rhs);
+  switch (kernel_variant_) {
+    case 0:
+      evalRHSBasic(flovars, time, rhs);
+      break;
+    case 1:
+      evalRHSFused(flovars, time, rhs);
+      break;
+    case 2:
+      evalRHSFullyFused(flovars, time, rhs);
+      break;
   }
 }
 
@@ -134,6 +142,63 @@ CahnHilliard3DFD::evalRHSFused(const SolutionState& flovars, double time, Soluti
                             laplacian_arg(i, j + 1, k) + laplacian_arg(i, j, k - 1) + laplacian_arg(i, j, k + 1) -
                             real_wp(6) * laplacian_arg(i, j, k)) /
                            dx2;
+
+      const real_wp del4f =
+          (real_wp(42) * f(i, j, k) -
+           real_wp(12) *
+               (f(i + 1, j, k) + f(i, j + 1, k) + f(i, j, k + 1) + f(i - 1, j, k) + f(i, j - 1, k) + f(i, j, k - 1)) +
+           f(i + 2, j, k) + f(i, j + 2, k) + f(i, j, k + 2) + f(i - 2, j, k) + f(i, j - 2, k) + f(i, j, k - 2) +
+           real_wp(2) * (f(i - 1, j - 1, k) + f(i - 1, j + 1, k) + f(i + 1, j - 1, k) + f(i + 1, j + 1, k) +
+                         f(i - 1, j, k - 1) + f(i + 1, j, k - 1) + f(i, j - 1, k - 1) + f(i, j + 1, k - 1) +
+                         f(i - 1, j, k + 1) + f(i + 1, j, k + 1) + f(i, j - 1, k + 1) + f(i, j + 1, k + 1))) /
+          dx4;
+
+      const real_wp linear_term = sigma * (f(i, j, k) - m);
+
+      rhseval(i, j, k) = -eps2 * del4f + del2 - linear_term;
+    });
+  }
+}
+
+
+void
+CahnHilliard3DFD::evalRHSFullyFused(const SolutionState& flovars, double time, SolutionState& rhs)
+{
+  profile();
+  const CahnHilliardState3D& state     = dynamic_cast<const CahnHilliardState3D&>(flovars);
+  CahnHilliardState3D&       dstate_dt = dynamic_cast<CahnHilliardState3D&>(rhs);
+
+  geom_.applyPeriodicBoundaryConditions(const_cast<ManagedArray3DNonOwning<real_wp>&>(state.c()));
+  geom_.applyNeumannBoundaryConditions(const_cast<ManagedArray3DNonOwning<real_wp>&>(state.c()));
+
+  {
+    auto          idx           = read_access(interiorIndices());
+    const real_wp dx2           = geom_.dx() * geom_.dx();
+    const real_wp dx4           = dx2 * dx2;
+    auto          f             = read_access(state.c());
+
+    auto rhseval = write_access(dstate_dt.c());
+
+    const real_wp m     = this->m();
+    const real_wp sigma = this->sigma();
+    const real_wp eps2  = this->eps2();
+
+    maDGForAll(ii, 0, idx.size(), {
+      int i;
+      int j;
+      int k;
+      f.getIJK(idx[ii], i, j, k);
+
+      const real_wp laparg_im1 = pow(f(i - 1, j, k), 3.0) - f(i - 1, j, k);
+      const real_wp laparg_ip1 = pow(f(i + 1, j, k), 3.0) - f(i + 1, j, k);
+      const real_wp laparg_jm1 = pow(f(i, j - 1, k), 3.0) - f(i, j - 1, k);
+      const real_wp laparg_jp1 = pow(f(i, j + 1, k), 3.0) - f(i, j + 1, k);
+      const real_wp laparg_km1 = pow(f(i, j, k - 1), 3.0) - f(i, j, k - 1);
+      const real_wp laparg_kp1 = pow(f(i, j, k + 1), 3.0) - f(i, j, k + 1);
+      const real_wp laparg_ijk = pow(f(i, j, k), 3.0) - f(i, j, k);
+
+      const real_wp del2 =
+          (laparg_im1 + laparg_ip1 + laparg_jm1 + laparg_jp1 + laparg_km1 + laparg_kp1 - real_wp(6) * laparg_ijk) / dx2;
 
       const real_wp del4f =
           (real_wp(42) * f(i, j, k) -

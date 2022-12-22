@@ -33,7 +33,7 @@ class Options
   double ch_m() const { return ch_m_; }
   double ch_eps2() const { return ch_eps2_; }
   double ch_sigma() const { return ch_sigma_; }
-  bool   use_fused_kernels() const { return use_fused_kernels_; }
+  int    kernel_variant() const { return kernel_variant_; }
 
 
   // spatial_discretization options;
@@ -77,7 +77,7 @@ class Options
   double              ch_m_;
   double              ch_eps2_;
   double              ch_sigma_;
-  bool                use_fused_kernels_;
+  int                 kernel_variant_;
 
   // spatial_discretization options;
   double domain_x_begin_;
