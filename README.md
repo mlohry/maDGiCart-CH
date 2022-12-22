@@ -9,7 +9,7 @@
 An implementation of non-local Cahn-Hilliard equations in 2D and 3D on Cartesian grids. Runs on serial CPU, OpenMP-parallelized CPU, and CUDA-enabled GPU.
 
 
-The main field that evolves is relative concentration of the primary phase at the mesoscale of a block copolymer, which occurs through a modified 2D Cahn Hilliard equation:
+The main field that evolves is relative concentration of the primary phase at the mesoscale of a block copolymer, which occurs through a modified Cahn Hilliard equation:
 
 <img src="https://github.com/mlohry/maDGiCart-CH/blob/master/.github/figs/cheqn.gif">
 
