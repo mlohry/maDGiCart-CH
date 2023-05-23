@@ -2,6 +2,7 @@
 
 #include "governing_equations/time_integrable_rhs.hpp"
 
+// todo this should be a class
 namespace {
 double abs_res = 0;
 double max_res = 0;
@@ -31,7 +32,13 @@ residual_calculator(const TimeIntegrableRHS& rhs, const SolutionState& residuals
 
   abs_res = name_value_pairs[0].second;
   max_res = std::max(max_res, abs_res);
-  rel_res = abs_res / max_res;
+  if (max_res) {
+    rel_res = abs_res / max_res;
+  } else {
+    rel_res = 1.0;
+    abs_res = 1.0;
+  }
+  name_value_pairs.emplace_back(std::pair<std::string, double>{"abs_res", abs_res});
   name_value_pairs.emplace_back(std::pair<std::string, double>{"rel_res", rel_res});
 
 

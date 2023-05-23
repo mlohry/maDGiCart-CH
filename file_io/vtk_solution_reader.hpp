@@ -6,6 +6,7 @@
 
 
 class SolutionState;
+class TimeIntegratorOptions;
 
 
 class VTKSolutionReader /* : inherit public InitialConditions? better, move that into /initialization */ {
@@ -15,6 +16,7 @@ class VTKSolutionReader /* : inherit public InitialConditions? better, move that
   CartesianDomainDefinition getCartesianDomain();
 
   void setSolution(const IndexArray& interior_indices, SolutionState& state);
+  void setInitialTimeStep(TimeIntegratorOptions& opts);
 
  private:
   const std::string filename_;

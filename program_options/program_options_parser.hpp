@@ -25,6 +25,7 @@ class ProgramOptionsParser
   boost::program_options::options_description physics{"Physics options"};
   boost::program_options::options_description discretization{"Spatial discretization options"};
   boost::program_options::options_description time_stepping{"Time stepping options"};
+  boost::program_options::options_description multigrid{"Multigrid options"};
   boost::program_options::options_description visible;
 
   boost::program_options::variables_map vm;

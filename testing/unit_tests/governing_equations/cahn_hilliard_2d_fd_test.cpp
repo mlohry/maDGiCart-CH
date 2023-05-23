@@ -24,7 +24,7 @@ TEST(CahnHilliard, RHSEvaluation)
     auto dstate_dt = ch_rhs.createSolutionState();
 
     auto idx = read_access_host(geom.interiorIndices());
-    auto f   = write_access_host(dynamic_cast<CahnHilliardState&>(*state).c());
+    auto f   = write_access_host(dynamic_cast<ScalarSolutionState2D&>(*state).c());
     auto x   = read_access_host(geom.x());
     auto y   = read_access_host(geom.y());
 
@@ -42,7 +42,7 @@ TEST(CahnHilliard, RHSEvaluation)
     const real_wp eps2 = ch_params.eps2();
     const real_wp sigma = ch_params.sigma();
 
-    auto rhs = read_access_host(dynamic_cast<CahnHilliardState&>(*dstate_dt).c());
+    auto rhs = read_access_host(dynamic_cast<ScalarSolutionState2D&>(*dstate_dt).c());
 
     maDGForAllHost(ii, 0, idx.size(), {
       int i;

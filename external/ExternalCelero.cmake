@@ -4,8 +4,9 @@ message(STATUS "Building external Celero project.")
 
 ExternalProject_Add(
         celero_external
-        URL https://github.com/DigitalInBlue/Celero/archive/refs/tags/v2.8.2.zip
-        URL_MD5 812ba22e4561d15b5be04cf8e4c68118
+        URL https://github.com/DigitalInBlue/Celero/archive/refs/tags/v2.8.5.zip
+        URL_MD5 50b779625cf9f4ce2206b06859b3182b
+        CMAKE_ARGS -DCMAKE_CXX_STANDARD=14
         INSTALL_COMMAND ""
 )
 

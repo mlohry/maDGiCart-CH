@@ -1,7 +1,7 @@
 #include "cahn_hilliard_solution_monitor.hpp"
 
-#include "cahn_hilliard_state.hpp"
 #include "data_structures/exec_includes.hpp"
+#include "data_structures/scalar_solution_state.hpp"
 #include "spatial_discretization/discretization_2d_cart.hpp"
 #include "spatial_discretization/discretization_3d_cart.hpp"
 #include "typedefs.hpp"
@@ -17,7 +17,7 @@ cahn_hilliard_solution_monitor(
   ReduceMaxReal c_max(std::numeric_limits<real_wp>::min());
   ReduceSumReal mag_gradc_integrated(0);
 
-  auto f   = read_access(dynamic_cast<const CahnHilliardState&>(state).c());
+  auto f   = read_access(dynamic_cast<const ScalarSolutionState2D&>(state).c());
   auto idx = read_access(geom.interiorIndices());
 
   const real_wp dx = geom.dx();
@@ -72,7 +72,7 @@ cahn_hilliard_solution_monitor(
   ReduceMaxReal c_max(std::numeric_limits<real_wp>::min());
   ReduceSumReal mag_gradc_integrated(0);
 
-  auto f   = read_access(dynamic_cast<const CahnHilliardState3D&>(state).c());
+  auto f   = read_access(dynamic_cast<const ScalarSolutionState3D&>(state).c());
   auto idx = read_access(geom.interiorIndices());
 
   const real_wp dx = geom.dx();

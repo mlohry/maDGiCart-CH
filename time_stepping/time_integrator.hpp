@@ -16,7 +16,7 @@ class TimeIntegrator : public Observable {
 
   virtual ~TimeIntegrator() {}
 
-  void solve(TimeIntegrableRHS&, InitialConditions&);
+  virtual void solve(TimeIntegrableRHS&, InitialConditions&);
 
   const SolutionState& getCurrentResidual() const { return *residual_state_; }
   const SolutionState& getCurrentSolutionState() const { return *solution_state_; }
@@ -39,8 +39,11 @@ class TimeIntegrator : public Observable {
   virtual real_t getCurrentTime() const { return time_; }
   virtual real_t getTimeStepSize() const { return dt_; }
 
+  TimeIntegrableRHS& rhs() { return rhs_; }
+
  protected:
 
+  const TimeIntegratorOptions& getTimeOptions() const { return time_options_; }
 
  private:
   TimeIntegrableRHS& rhs_;

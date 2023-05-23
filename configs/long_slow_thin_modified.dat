@@ -1,0 +1,46 @@
+
+         initial_condition_file = none
+                       log_file = maDGiCart
+                  log_frequency = 1
+                     save_every = 10000
+
+ # ****** Physics Options ****** #
+
+                  equation_type = cahn-hilliard
+                              m = 0.3
+                           eps2 = 0.00219293
+                          sigma = 0.16329
+                 kernel_variant = 1
+
+ # ****** Discretization Options ****** #
+
+                 domain_x_begin = 0
+                 domain_y_begin = 0
+                 domain_z_begin = 0
+                   domain_x_end = 2
+            domain_resolution_x = 128
+            domain_resolution_y = 128
+            domain_resolution_z = 32
+                      dimension = 3
+                           bc_x = periodic
+                           bc_y = periodic
+                           bc_z = periodic
+
+ # ****** Time Stepping Options ****** #
+
+                time_integrator = petsc_jacobian_bdf
+                 time_step_size = 1e-06
+                   initial_time = 0
+                     final_time = 1
+                 max_time_steps = 100000
+              use_cfl_time_step = false
+                            cfl = 1
+         use_adaptive_time_step = true
+             min_time_step_size = 2.22045e-14
+             max_time_step_size = 1.79769e+306
+               time_rel_err_tol = 1e-05
+              converged_rel_tol = 0
+              converged_abs_tol = 0
+                  petsc_options = -snes_rtol 1e-1 -mg_levels_ksp_max_it 2 -mg_levels_pc_type jacobi -mg_levels_ksp_type gmres -ts_type bdf -ts_max_snes_failures 10000 -ksp_max_it 30 -ksp_rtol 1e-4 -ksp_atol 1e-5 -ksp_norm_type unpreconditioned -snes_linesearch_type l2 -snes_linesearch_minlambda 0.1 -snes_linesearch_max_it 3 -snes_linesearch_monitor
+
+

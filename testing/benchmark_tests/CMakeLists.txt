@@ -2,7 +2,7 @@ add_executable(benchmark_testing
         benchmark_main.cpp
         cahn_hilliard_3d_benchmark.cpp
         cahn_hilliard_2d_benchmark.cpp
-        )
+        sparse_matrix_benchmark.cpp)
 
 
 add_dependencies(benchmark_testing ${external_libraries})

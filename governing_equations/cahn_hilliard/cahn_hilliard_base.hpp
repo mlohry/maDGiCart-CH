@@ -7,7 +7,8 @@
 class CahnHilliardBase : public TimeIntegrableRHS {
  public:
   CahnHilliardBase(const CahnHilliardParameters& params)
-      : m_(params.m()),
+      : params_(params),
+        m_(params.m()),
         sigma_(params.sigma()),
         eps2_(params.eps2())
   {
@@ -22,7 +23,10 @@ class CahnHilliardBase : public TimeIntegrableRHS {
   double sigma() const { return sigma_; }
   double eps2() const { return eps2_; }
 
+  const CahnHilliardParameters& params() const { return params_; }
+
  private:
+  const CahnHilliardParameters params_;
   const double m_;
   const double sigma_;
   const double eps2_;

@@ -7,7 +7,9 @@
 #include "governing_equations/cahn_hilliard/cahn_hilliard_initial_conditions.hpp"
 #include "governing_equations/cahn_hilliard/cahn_hilliard_parameters.hpp"
 #include "governing_equations/cahn_hilliard/cahn_hilliard_solution_monitor.hpp"
+#include "governing_equations/poisson/poisson_3d_fd.hpp"
 #include "governing_equations/initial_conditions.hpp"
+#include "governing_equations/constant_initial_conditions.hpp"
 #include "governing_equations/initial_conditions_from_file.hpp"
 #include "governing_equations/residual_calculator.hpp"
 #include "logger/logger.hpp"
@@ -26,6 +28,7 @@ Puppeteer::Puppeteer(const std::vector<std::string>& cmd_line)
 {
   ProgramOptionsParser parser;
   parser.parseInputOptions(cmd_line);
+  programOptionsSanityCheck();
 
   Logger::get().initLogFile(Options::get().log_file());
   Logger::get().InfoMessage(parser.getConfigurationFileTemplate());
@@ -74,7 +77,11 @@ Puppeteer::run()
 
   time_integrator_->solve(*rhs_, *initial_conditions_);
 
-  write_solution_to_vtk(time_integrator_->getCurrentSolutionState(), *geom_, file_output_string_ + "_final");
+  write_solution_to_vtk(
+      time_integrator_->getIterationStatus(),
+      time_integrator_->getCurrentSolutionState(),
+      *geom_,
+      file_output_string_ + "_final");
 
   Logger::get().InfoMessage(Profiler::get().finalize());
 }
@@ -88,6 +95,9 @@ parseBC(const std::string bcstr)
   }
   if (bcstr == "neumann") {
     return BCType::Neumann;
+  }
+  if (bcstr == "dirichlet") {
+    return BCType::Dirichlet;
   }
   Logger::get().FatalMessage("BC type string " + bcstr + " not recognized.");
   abort();
@@ -104,13 +114,15 @@ Puppeteer::geomFactory()
     domain = solution_reader_->getCartesianDomain();
   }
   else {
-    domain.nx   = Options::get().domain_resolution();
-    domain.ny   = domain.nx;
-    domain.nz   = domain.nx;
+    domain.nx   = Options::get().domain_resolution_x();
+    domain.ny   = Options::get().domain_resolution_y();
+    domain.nz   = Options::get().domain_resolution_z();
     domain.xbeg = Options::get().domain_x_begin();
     domain.xend = Options::get().domain_x_end();
-    domain.ybeg = Options::get().domain_x_begin();
-    domain.zbeg = Options::get().domain_x_begin();
+    domain.ybeg = Options::get().domain_y_begin();
+    domain.yend = Options::get().domain_y_end();
+    domain.zbeg = Options::get().domain_z_begin();
+    domain.zend = Options::get().domain_z_end();
   }
 
   domain.nhalo = 2;  // should be dependent on equation and order / stencil size
@@ -135,22 +147,30 @@ Puppeteer::geomFactory()
 std::unique_ptr<TimeIntegrableRHS>
 Puppeteer::rhsFactory(SpatialDiscretization& geom)
 {
-  Logger::get().FatalAssert(
-      Options::get().equation_type() == "cahn-hilliard", "Only equation_type=cahn-hilliard currently supported.");
+  if (Options::get().equation_type() == "cahn-hilliard") {
 
-  CahnHilliardParameters params;
+    CahnHilliardParameters params;
 
-  const int dim = Options::get().dimension();
-  switch (dim) {
-    case 2:
-      return std::make_unique<CahnHilliard2DFD>(dynamic_cast<Discretization2DCart&>(geom), params);
-      ;
-    case 3:
-      return std::make_unique<CahnHilliard3DFD>(dynamic_cast<Discretization3DCart&>(geom), params);
-      ;
-    default:
-      Logger::get().FatalMessage("Only dimensions 2 and 3 supported.");
+    const int dim = Options::get().dimension();
+    switch (dim) {
+      case 2:
+        return std::make_unique<CahnHilliard2DFD>(dynamic_cast<Discretization2DCart&>(geom), params);
+        ;
+      case 3:
+        return std::make_unique<CahnHilliard3DFD>(dynamic_cast<Discretization3DCart&>(geom), params);
+        ;
+      default:
+        Logger::get().FatalMessage("Only dimensions 2 and 3 supported.");
+    }
   }
+  else if (Options::get().equation_type() == "poisson") {
+    return std::make_unique<Poisson3DFD>(dynamic_cast<Discretization3DCart&>(geom));
+  }
+  else {
+    Logger::get().FatalMessage("Only cahn-hilliard and poission equation_type supported.");
+  }
+
+
 
   return nullptr;
 }
@@ -159,23 +179,32 @@ Puppeteer::rhsFactory(SpatialDiscretization& geom)
 std::unique_ptr<InitialConditions>
 Puppeteer::initialConditionsFactory()
 {
-  Logger::get().FatalAssert(
-      Options::get().equation_type() == "cahn-hilliard", "Only equation_type=cahn-hilliard currently supported.");
-
   if (solution_reader_) {
     return std::make_unique<InitialConditionsFromFile>(*solution_reader_);
   }
   else {
-    CahnHilliardParameters params;
-    return std::make_unique<CahnHilliardInitialConditions>(params);
+    if (Options::get().equation_type() == "cahn-hilliard"){
+      CahnHilliardParameters params;
+      return std::make_unique<CahnHilliardInitialConditions>(params);
+    }
+    else if (Options::get().equation_type() == "poisson"){
+      return std::make_unique<ConstantInitialConditions>(0.0);
+    }
+    else {
+      Logger::get().FatalMessage("Only cahn-hilliard and poisson supported for initialConditionsFactory");
+    }
   }
+  return nullptr;
 }
 
 
 std::unique_ptr<TimeIntegrator>
 Puppeteer::timeIntegratorFactory(TimeIntegrableRHS& rhs)
 {
-  auto time_opts = getTimeOptionsUsingGlobalOptions();
+  TimeIntegratorOptions time_opts = getTimeOptionsUsingGlobalOptions();
+  if (solution_reader_) {
+    solution_reader_->setInitialTimeStep(time_opts);
+  }
   return FactoryRegistry<TimeIntegrator>::get().lookup(Options::get().time_integrator())(rhs, time_opts);
 }
 
@@ -222,14 +251,28 @@ Puppeteer::attachSolutionObservers(TimeIntegrator& time_integrator, SpatialDiscr
 
   if (save_every) {
     time_integrator.registerObserver(Event::SolutionUpdate, [&]() {
-      const int   iterwidth  = int(log10(Options::get().max_time_steps()) + 1);
-      std::string iterstring = boost::lexical_cast<std::string>(time_integrator.getCurrentStep());
-      iterstring.erase(std::remove(iterstring.begin(), iterstring.end(), ','), iterstring.end());
-
-      std::ostringstream ss;
-      ss << std::setw(iterwidth) << std::setfill('0') << iterstring;
       write_solution_to_vtk(
-          time_integrator_->getCurrentSolutionState(), *geom_, file_output_string_ + "_step_" + ss.str());
+          time_integrator_->getIterationStatus(),
+          time_integrator_->getCurrentSolutionState(),
+          *geom_,
+          file_output_string_);
     });
   }
+}
+
+
+void
+Puppeteer::programOptionsSanityCheck() const
+{
+  //  if (Options::get().dimension() == 3) {
+  //    if (Options::get().bc_x() != "periodic" || Options::get().bc_y() != "periodic" ||
+  //        Options::get().bc_z() != "periodic") {
+  //      if (Options::get().time_integrator().compare(0, 5, "petsc")){
+  //        Logger::get().FatalMessage("petsc implicit solvers only support triply-periodic case");
+  //      }
+  //      if (Options::get().kernel_variant() != 0){
+  //        Logger::get().FatalMessage("kernel_variant only supported for triply-periodic case");
+  //      }
+  //    }
+  //  }
 }

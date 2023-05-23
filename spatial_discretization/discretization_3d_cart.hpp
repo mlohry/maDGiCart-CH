@@ -5,7 +5,6 @@
 
 class Discretization3DCart : public SpatialDiscretization {
  public:
-
   Discretization3DCart(const CartesianDomainDefinition& domain);
 
   ~Discretization3DCart() = default;
@@ -16,6 +15,8 @@ class Discretization3DCart : public SpatialDiscretization {
   std::unique_ptr<ManagedArray3D<real_wp>> createRealArray() const;
 
   int    ni() const { return ni_; }
+  int    nj() const { return nj_; }
+  int    nk() const { return nk_; }
   int    nhalo() const { return nhalo_; }
   double dx() const { return dx_; }
   int    nInteriorPoints() const { return interior_indices_.size(); }
@@ -39,10 +40,28 @@ class Discretization3DCart : public SpatialDiscretization {
   void applyNeumannBCY(ManagedArray3D<real_wp>& state) const;
   void applyNeumannBCZ(ManagedArray3D<real_wp>& state) const;
 
+
+  std::unique_ptr<SpatialDiscretization> createCoarsenedDiscretization() const override;
+
+  void interpolateFineToCoarse(
+      const SolutionState&         fine_state,
+      const SpatialDiscretization& coarse_geom,
+      SolutionState&               coarse_state) const override;
+
+  void interpolateCoarseToFine(
+      const SolutionState&         coarse_state,
+      const SpatialDiscretization& fine_geom,
+      SolutionState&               fine_state) const override;
+
+
  private:
   const int    ni_;
+  const int    nj_;
+  const int    nk_;
   const int    nhalo_;
   const int    ninhalo_;
+  const int    njnhalo_;
+  const int    nknhalo_;
   const double dx_;
 
   IndexArray interior_indices_;

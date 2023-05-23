@@ -58,7 +58,7 @@ class OrderOfAccuracy
 
   real_t getMinimumError() const
   {
-    real_t err = std::numeric_limits<real_t>::max();
+    double err = std::numeric_limits<real_t>::max();
     for (const auto& kv : solutions_) {
       for (std::size_t i = 0; i < kv.second.size(); ++i) {
         err = std::min(err, kv.second[i].second);

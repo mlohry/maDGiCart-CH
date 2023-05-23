@@ -13,7 +13,7 @@
 TEST(FileIO, Discretization2DCartWriteAndRead)
 {
   const std::string filename_without_ext = "fileio_unittest";
-  const std::string filename_with_ext    = filename_without_ext + ".vts";
+  const std::string full_filename        = filename_without_ext + "_step_00.vts";
 
   const int    N     = 16;
   const int    Nhalo = 2;
@@ -39,7 +39,7 @@ TEST(FileIO, Discretization2DCartWriteAndRead)
     auto state = rhs.createSolutionState();
 
 
-    auto c = write_access_host(dynamic_cast<CahnHilliardState&>(*state).c());
+    auto c = write_access_host(dynamic_cast<ScalarSolutionState2D&>(*state).c());
 
     auto x   = read_access_host(geom.x());
     auto y   = read_access_host(geom.y());
@@ -53,13 +53,15 @@ TEST(FileIO, Discretization2DCartWriteAndRead)
       c(i, j) = sin(x(i, j)) * cos(y(i, j));
     });
 
-    write_solution_to_vtk(*state, geom, filename_without_ext);
+    const std::vector<std::pair<std::string, double>> dummy_status{{"iter", 0}, {"time", 0}, {"dt", 0}};
+
+    write_solution_to_vtk(dummy_status, *state, geom, filename_without_ext);
   }
 
 
   // read back the solution file
   {
-    VTKSolutionReader file_reader(filename_with_ext);
+    VTKSolutionReader file_reader(full_filename);
 
     const auto domain_defn = file_reader.getCartesianDomain();
     EXPECT_EQ(domain_defn.nx, N);
@@ -77,7 +79,7 @@ TEST(FileIO, Discretization2DCartWriteAndRead)
     auto x   = read_access_host(geom.x());
     auto y   = read_access_host(geom.y());
     auto idx = read_access_host(geom.interiorIndices());
-    auto c   = read_access_host(dynamic_cast<CahnHilliardState&>(*input_state).c());
+    auto c   = read_access_host(dynamic_cast<ScalarSolutionState2D&>(*input_state).c());
 
     maDGForAllHost(ii, 0, idx.size(), {
       int i;
@@ -92,7 +94,7 @@ TEST(FileIO, Discretization2DCartWriteAndRead)
 TEST(FileIO, Discretization3DCartWriteAndRead)
 {
   const std::string filename_without_ext = "fileio3d_unittest";
-  const std::string filename_with_ext    = filename_without_ext + ".vts";
+  const std::string full_filename        = filename_without_ext + "_step_0000.vts";
 
   const int    N     = 16;
   const int    Nhalo = 2;
@@ -119,7 +121,7 @@ TEST(FileIO, Discretization3DCartWriteAndRead)
     auto state = rhs.createSolutionState();
 
 
-    auto c = write_access_host(dynamic_cast<CahnHilliardState3D&>(*state).c());
+    auto c = write_access_host(dynamic_cast<ScalarSolutionState3D&>(*state).c());
 
     auto x   = read_access_host(geom.x());
     auto y   = read_access_host(geom.y());
@@ -135,13 +137,15 @@ TEST(FileIO, Discretization3DCartWriteAndRead)
       c(i, j, k) = sin(x(i, j, k)) * cos(y(i, j, k)) * cos(z(i, j, k));
     });
 
-    write_solution_to_vtk(*state, geom, filename_without_ext);
+    const std::vector<std::pair<std::string, double>> dummy_status{{"iter", 0}, {"time", 0}, {"dt", 0}};
+
+    write_solution_to_vtk(dummy_status, *state, geom, filename_without_ext);
   }
 
 
   // read back the solution file
   {
-    VTKSolutionReader file_reader(filename_with_ext);
+    VTKSolutionReader file_reader(full_filename);
 
     const auto domain_defn = file_reader.getCartesianDomain();
     EXPECT_EQ(domain_defn.nx, N);
@@ -160,7 +164,7 @@ TEST(FileIO, Discretization3DCartWriteAndRead)
     auto y   = read_access_host(geom.y());
     auto z   = read_access_host(geom.z());
     auto idx = read_access_host(geom.interiorIndices());
-    auto c   = read_access_host(dynamic_cast<CahnHilliardState3D&>(*input_state).c());
+    auto c   = read_access_host(dynamic_cast<ScalarSolutionState3D&>(*input_state).c());
 
     maDGForAllHost(ii, 0, idx.size(), {
       int i;

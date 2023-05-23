@@ -22,7 +22,7 @@ class CahnHilliard2DFixture : public celero::TestFixture {
 
 
   /// Before each run
-  virtual void setUp(const celero::TestFixture::ExperimentValue& experimentValue)
+  void setUp(const celero::TestFixture::ExperimentValue& experimentValue) override
   {
     this->gridsize_ = experimentValue.Value;
 

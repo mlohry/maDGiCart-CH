@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "logger/profiler.hpp"
+#include <iostream>
 
 /// event classifications mapping to the observer pattern
 enum class Event { TimeStepComplete, SolutionUpdate };

@@ -7,7 +7,7 @@ add_executable(unit_testing
         governing_equations/cahn_hilliard_3d_fd_test.cpp
         file_io_test.cpp
         data_structures/managed_array_test.cpp
-        )
+        data_structures/csr_matrix_test.cpp)
 
 if(MADG_USE_CUDA)
     message(STATUS "Building data_structures/managed_array_test.cpp with CUDA support.")

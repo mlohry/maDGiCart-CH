@@ -1,7 +1,9 @@
 #include "vtk_solution_reader.hpp"
 
+#include "data_structures/scalar_solution_state.hpp"
 #include "data_structures/solution_state.hpp"
 #include "logger/logger.hpp"
+#include "time_stepping/time_integrator_options.hpp"
 #include "tinyxml2.h"
 
 #include <boost/algorithm/string.hpp>
@@ -87,7 +89,16 @@ VTKSolutionReader::getCartesianDomain()
 
 
   const int npoints = point_data_tokens.size() / 3;
-  Logger::get().FatalAssert(npoints == pow(nxend + 1, dimension_), "VTKSolutionReader npoints == (nxend+1)^dim");
+  if (dimension_ == 2) {
+    Logger::get().FatalAssert(
+        npoints == (nxend + 1) * (nyend + 1),
+        "VTKSolutionReader npoints == (nx+1)*(ny+1), got npoints: " + std::to_string(npoints) +
+            " nx: " + std::to_string(nxend) + " ny: " + std::to_string(nyend));
+  }
+  if (dimension_ == 3) {
+    Logger::get().FatalAssert(
+        npoints == (nxend + 1) * (nyend + 1) * (nzend + 1), "VTKSolutionReader npoints == (nx+1)*(ny+1)*(nz+1)");
+  }
 
 
   std::vector<double> x, y, z;
@@ -104,6 +115,7 @@ VTKSolutionReader::getCartesianDomain()
 
   return domain;
 }
+
 
 void
 VTKSolutionReader::setSolution(const IndexArray& interior_indices, SolutionState& state)
@@ -132,11 +144,70 @@ VTKSolutionReader::setSolution(const IndexArray& interior_indices, SolutionState
     solution[i] = boost::lexical_cast<double>(cell_data_tokens[i]);
   }
 
+  const auto domain = getCartesianDomain();
 
-  auto idx = read_access_host(interior_indices);
-  auto sol = write_access_host(state.getVec(0));
+  if (!domain.nz) {  // 2d
+    ScalarSolutionState2D& state2d = dynamic_cast<ScalarSolutionState2D&>(state);
+    auto               f0      = write_access_host(state2d.c());
+    int                solidx  = 0;
+    for (int j = 0; j < domain.ny; ++j) {
+      for (int i = 0; i < domain.nx; ++i) {
+        f0(i, j) = solution[solidx];
+        solidx++;
+      }
+    }
+  }
+  else {
+    ScalarSolutionState3D& state3d = dynamic_cast<ScalarSolutionState3D&>(state);
+    auto                 f0      = write_access_host(state3d.c());
+    int                  solidx  = 0;
+    for (int k = 0; k < domain.nz; ++k) {
+      for (int j = 0; j < domain.ny; ++j) {
+        for (int i = 0; i < domain.nx; ++i) {
+          f0(i, j, k) = solution[solidx];
+          solidx++;
+        }
+      }
+    }
+  }
+}
 
-  for (int i = 0; i < idx.size(); ++i) {
-    sol[idx[i]] = solution[i];
+
+void
+VTKSolutionReader::setInitialTimeStep(TimeIntegratorOptions& opts)
+{
+  tinyxml2::XMLDocument doc;
+  auto                  timer = Logger::get().timer("VTKSolutionReader::setSolution() reading " + filename_);
+  doc.LoadFile(filename_.c_str());
+
+  auto field_data =
+      doc.FirstChildElement("VTKFile")->FirstChildElement("StructuredGrid")->FirstChildElement("FieldData");
+  if (field_data) {
+    for (auto* e = field_data->FirstChildElement("DataArray"); e != NULL; e = e->NextSiblingElement("DataArray")) {
+      auto name_str = e->Attribute("Name");
+      if (name_str) {
+        auto name = std::string(name_str);
+        Logger::get().InfoMessage("Read DataArray name " + name);
+        auto        text_data = e->GetText();
+        std::string data_string(text_data);
+        // remove unwanted leading or trailing whitespace
+        boost::trim_if(data_string, boost::is_any_of("\t \n"));
+        std::vector<std::string> cell_data_tokens;
+        boost::algorithm::split(cell_data_tokens, data_string, boost::is_any_of("\t\n "), boost::token_compress_on);
+
+        if (name == "TimeValue") {
+          opts.t0_ = boost::lexical_cast<real_t>(cell_data_tokens[0]);
+          Logger::get().InfoMessage("Restarting at time " + std::to_string(opts.t0_));
+        }
+        else if (name == "IterationValue") {
+          opts.initial_step_ = boost::lexical_cast<int>(cell_data_tokens[0]);
+          Logger::get().InfoMessage("Restarting at iteration number " + std::to_string(opts.initial_step_));
+        }
+        else if (name == "TimeStepSize") {
+          opts.dt_initial_ = boost::lexical_cast<real_t>(cell_data_tokens[0]);
+          Logger::get().InfoMessage("Restarting with time step size " + std::to_string(opts.dt_initial_));
+        }
+      }
+    }
   }
 }

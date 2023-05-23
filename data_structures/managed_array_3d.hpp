@@ -20,7 +20,20 @@ class ManagedArray3DAccessor {
   {
   }
 
+#ifndef NDEBUG
+  MADG_HOST_DEVICE inline T& operator()(int i, int j, int k) const {
+    assert(i>= -nhalo_layers_);
+    assert(i < nihalo_);
+    assert(j>= -nhalo_layers_);
+    assert(j < njhalo_);
+    assert(k>= -nhalo_layers_);
+    assert(k < nkhalo_);
+
+    return data_[idx1d(i, j, k)];
+  }
+#else
   MADG_HOST_DEVICE inline T& operator()(int i, int j, int k) const { return data_[idx1d(i, j, k)]; }
+#endif
 
   MADG_HOST_DEVICE inline void getIJK(int idx, int& i, int& j, int& k) const
   {

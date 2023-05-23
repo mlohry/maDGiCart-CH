@@ -30,7 +30,7 @@ TEST(CahnHilliard3D, RHSEvaluation)
     auto dstate_dt = ch_rhs.createSolutionState();
 
     auto idx = read_access_host(geom.interiorIndices());
-    auto f   = write_access_host(dynamic_cast<CahnHilliardState3D&>(*state).c());
+    auto f   = write_access_host(dynamic_cast<ScalarSolutionState3D&>(*state).c());
     auto x   = read_access_host(geom.x());
     auto y   = read_access_host(geom.y());
     auto z   = read_access_host(geom.z());
@@ -50,7 +50,7 @@ TEST(CahnHilliard3D, RHSEvaluation)
     const real_wp        eps2  = ch_params.eps2();
     const real_wp        sigma = ch_params.sigma();
 
-    auto rhs = read_access_host(dynamic_cast<CahnHilliardState3D&>(*dstate_dt).c());
+    auto rhs = read_access_host(dynamic_cast<ScalarSolutionState3D&>(*dstate_dt).c());
 
     maDGForAllHost(ii, 0, idx.size(), {
       int i;
