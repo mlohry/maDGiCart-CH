@@ -41,9 +41,9 @@ class Logger {
   void setResidualMonitor(const std::vector<std::pair<std::string, double>>& name_value_pairs);
   void setSolutionMonitor(const std::vector<std::pair<std::string, double>>& name_value_pairs);
 
-  const std::vector<std::pair<std::string, double>> getTimeMonitor() const { return time_status_; }
-  const std::vector<std::pair<std::string, double>> getResidualMonitor() const { return residual_status_; }
-  const std::vector<std::pair<std::string, double>> getSolutionMonitor() const { return solution_status_; }
+  const std::vector<std::pair<std::string, double>>& getTimeMonitor() const { return time_status_; }
+  const std::vector<std::pair<std::string, double>>& getResidualMonitor() const { return residual_status_; }
+  const std::vector<std::pair<std::string, double>>& getSolutionMonitor() const { return solution_status_; }
 
   void Message(const std::string& str, LogLevel lvl);
   void TraceMessage(std::string str);

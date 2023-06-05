@@ -1,11 +1,11 @@
 #include "program_options_parser.hpp"
 
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <limits>
 #include <map>
 #include <vector>
-#include <iomanip>
 
 #include "logger/logger.hpp"
 #include "program_options.hpp"
@@ -13,12 +13,14 @@
 #include "utils/registry.hpp"
 
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/filesystem.hpp>
 
 
 namespace po = boost::program_options;
 
 template <typename T>
-std::ostream& operator<<(std::ostream& os, const std::vector<T>& vec)
+std::ostream&
+operator<<(std::ostream& os, const std::vector<T>& vec)
 {
   for (size_t i = 0; i < vec.size(); ++i) {
     os << vec[i] << " ";
@@ -26,47 +28,54 @@ std::ostream& operator<<(std::ostream& os, const std::vector<T>& vec)
   return os;
 }
 
-namespace std
-{
-std::ostream& operator<<(std::ostream& os, const std::vector<double>& vec)
-{
-  for (auto i : vec) {
-    os << i << " ";
-  }
-  return os;
-}
-}
-
-
-namespace std
-{
-std::ostream& operator<<(std::ostream& os, const std::vector<std::string>& vec)
+namespace std {
+std::ostream&
+operator<<(std::ostream& os, const std::vector<double>& vec)
 {
   for (auto i : vec) {
     os << i << " ";
   }
   return os;
 }
+}  // namespace std
+
+
+namespace std {
+std::ostream&
+operator<<(std::ostream& os, const std::vector<std::string>& vec)
+{
+  for (auto i : vec) {
+    os << i << " ";
+  }
+  return os;
 }
+}  // namespace std
 
 
-std::istream& operator>>(std::istream& in, LogLevel& level)
+std::istream&
+operator>>(std::istream& in, LogLevel& level)
 {
   std::string token;
   in >> token;
   if (boost::iequals(token, "trace")) {
     level = LogLevel::trace;
-  } else if (boost::iequals(token, "debug")) {
+  }
+  else if (boost::iequals(token, "debug")) {
     level = LogLevel::debug;
-  } else if (boost::iequals(token, "info")) {
+  }
+  else if (boost::iequals(token, "info")) {
     level = LogLevel::info;
-  } else if (boost::iequals(token, "warning")) {
+  }
+  else if (boost::iequals(token, "warning")) {
     level = LogLevel::warning;
-  } else if (boost::iequals(token, "error")) {
+  }
+  else if (boost::iequals(token, "error")) {
     level = LogLevel::error;
-  } else if (boost::iequals(token, "fatal")) {
+  }
+  else if (boost::iequals(token, "fatal")) {
     level = LogLevel::fatal;
-  } else {
+  }
+  else {
     in.setstate(std::ios_base::failbit);
   }
   return in;
@@ -91,9 +100,7 @@ ProgramOptionsParser::ProgramOptionsParser()
       "log_file",
       po::value<std::string>(&Options::get().log_file_)->default_value("maDGiCart"),
       "Solution output file name, without file extension.")(
-      "log_frequency",
-      po::value<int>(&Options::get().log_frequency_)->default_value(20),
-      "Logger update frequency.")(
+      "log_frequency", po::value<int>(&Options::get().log_frequency_)->default_value(20), "Logger update frequency.")(
       "save_every",
       po::value<int>(&Options::get().save_every_)->default_value(0),
       "If not zero, save a solution every N time step.");
@@ -119,15 +126,25 @@ ProgramOptionsParser::ProgramOptionsParser()
       "domain_x_begin",
       po::value<double>(&Options::get().domain_x_begin_)->default_value(0),
       "Minimum x value for Cartesian domain")(
+      "domain_y_begin",
+      po::value<double>(&Options::get().domain_y_begin_)->default_value(0),
+      "Minimum y value for Cartesian domain (max y value set as function of x length and resolution)")(
+      "domain_z_begin",
+      po::value<double>(&Options::get().domain_z_begin_)->default_value(0),
+      "Minimum z value for Cartesian domain (max z value set as function of x length and resolution)")(
       "domain_x_end",
       po::value<double>(&Options::get().domain_x_end_)->default_value(1),
       "Maximum x value for Cartesian domain")(
-      "domain_resolution",
-      po::value<int>(&Options::get().domain_resolution_)->default_value(128),
-      "Cartesian mesh with [domain_resolution]^N nodes")(
-      "dimension",
-      po::value<int>(&Options::get().dimension_)->default_value(2),
-      "Spatial dimension, 2 or 3.")(
+      "domain_resolution_x",
+      po::value<int>(&Options::get().domain_resolution_x_)->default_value(128),
+      "Cartesian mesh with [domain_resolution_x] nodes in x-direction")(
+      "domain_resolution_y",
+      po::value<int>(&Options::get().domain_resolution_y_)->default_value(128),
+      "Cartesian mesh with [domain_resolution_y] nodes in y-direction")(
+      "domain_resolution_z",
+      po::value<int>(&Options::get().domain_resolution_z_)->default_value(128),
+      "Cartesian mesh with [domain_resolution_z] nodes in z-direction")(
+      "dimension", po::value<int>(&Options::get().dimension_)->default_value(2), "Spatial dimension, 2 or 3.")(
       "bc_x",
       po::value<std::string>(&Options::get().bc_x_)->default_value("periodic"),
       "Boundary condition in x-direction, periodic or neumann. Only for 3D.")(
@@ -145,31 +162,24 @@ ProgramOptionsParser::ProgramOptionsParser()
       "time_step_size",
       po::value<double>(&Options::get().time_step_size_)->default_value(1.e-6),
       "Unsteady time step size. For adaptive methods this is the initial step size.")(
-      "initial_time",
-      po::value<double>(&Options::get().initial_time_)->default_value(0),
-      "Initial time for unsteady.")(
-      "final_time",
-      po::value<double>(&Options::get().final_time_)->default_value(1),
-      "Stopping time for unsteady.")(
+      "initial_time", po::value<double>(&Options::get().initial_time_)->default_value(0), "Initial time for unsteady.")(
+      "final_time", po::value<double>(&Options::get().final_time_)->default_value(1), "Stopping time for unsteady.")(
       "max_time_steps",
       po::value<unsigned>(&Options::get().max_time_steps_)->default_value(10000),
       "Maximum number of unsteady time steps.")(
       "use_cfl_time_step",
       po::value<bool>(&Options::get().use_cfl_time_step_)->default_value(false),
       "Use CFL-based time stepping instead of dimensional time step.")(
-      "cfl",
-      po::value<double>(&Options::get().cfl_)->default_value(1.0),
-      "CFL number for CFL-based time stepping.")(
+      "cfl", po::value<double>(&Options::get().cfl_)->default_value(1.0), "CFL number for CFL-based time stepping.")(
       "use_adaptive_time_step",
       po::value<bool>(&Options::get().use_adaptive_time_step_)->default_value(false),
       "Use error-adaptive time stepping.")(
       "min_time_step_size",
       po::value<double>(&Options::get().min_time_step_size_)
-          ->default_value(std::numeric_limits<double>::epsilon()*100),
+          ->default_value(std::numeric_limits<double>::epsilon() * 100),
       "For adaptive time stepping, the minimum time step size.")(
       "max_time_step_size",
-      po::value<double>(&Options::get().max_time_step_size_)
-          ->default_value(std::numeric_limits<double>::max()/100),
+      po::value<double>(&Options::get().max_time_step_size_)->default_value(std::numeric_limits<double>::max() / 100),
       "For adaptive time stepping, the maximum time step size.")(
       "time_rel_err_tol",
       po::value<double>(&Options::get().time_rel_err_tol_)->default_value(1e-2),
@@ -179,11 +189,35 @@ ProgramOptionsParser::ProgramOptionsParser()
       "Relative residual to consider solution converged. 0 indicates use max time or max timesteps.")(
       "converged_abs_tol",
       po::value<double>(&Options::get().converged_abs_tol_)->default_value(0),
-      "Absolute residual to consider solution converged. 0 indicates use max time or max timesteps.");
+      "Absolute residual to consider solution converged. 0 indicates use max time or max timesteps.")(
+      "petsc_options", po::value<std::string>(&Options::get().petsc_options_), "Petsc runtime options");
 
+  multigrid.add_options()(
+      "mg_max_cycles",
+      po::value<int>(&Options::get().mg_max_cycles_)->default_value(100),
+      "Max number of multigrid cycles per time step")(
+      "mg_rel_tol",
+      po::value<double>(&Options::get().mg_rel_tol_)->default_value(0.01),
+      "Multigrid convergence tolerance")(
+      "mg_verbosity", po::value<int>(&Options::get().mg_verbosity_)->default_value(2), "Multigrid verbosity >= 0")(
+      "mg_relaxation",
+      po::value<double>(&Options::get().mg_relaxation_)->default_value(1.0),
+      "Multigrid underrelaxation")(
+      "mg_coarse_relaxation",
+      po::value<double>(&Options::get().mg_coarse_relaxation_)->default_value(1.0),
+      "Multigrid coarse grid update underrelaxation")(
+      "mg_nsmooth",
+      po::value<int>(&Options::get().mg_nsmooth_)->default_value(1),
+      "Multigrid number of smoother iterations")(
+      "mg_cfl", po::value<double>(&Options::get().mg_cfl_)->default_value(1), "Multigrid smoother CFL number")(
+      "mg_levels", po::value<int>(&Options::get().mg_levels_)->default_value(1), "Multigrid number of levels")(
+      "mg_interpolation",
+      po::value<std::string>(&Options::get().mg_interpolation_)->default_value("nearest"),
+      "Multigrid coarse to fine interpolation type, nearest or linear");
 }
 
-void ProgramOptionsParser::parseInputOptions(const std::vector<std::string>& cmd_line)
+void
+ProgramOptionsParser::parseInputOptions(const std::vector<std::string>& cmd_line)
 {
   vm.clear();
 
@@ -191,6 +225,7 @@ void ProgramOptionsParser::parseInputOptions(const std::vector<std::string>& cmd
   base.add(discretization);
   base.add(physics);
   base.add(time_stepping);
+  base.add(multigrid);
   visible.add(base);
 
 
@@ -217,10 +252,18 @@ void ProgramOptionsParser::parseInputOptions(const std::vector<std::string>& cmd
     exit(0);
     return;
   }
+
+  if (!Options::get().config_file_.empty()) {
+    if (!boost::filesystem::exists(Options::get().config_file_)) {
+      std::cout << "Can't find config_file " << Options::get().config_file_ << "\n";
+      exit(1);
+    }
+  }
 }
 
 
-std::ostream& operator<<(std::ostream& os, const boost::any& a)
+std::ostream&
+operator<<(std::ostream& os, const boost::any& a)
 {
   // must determine the type of the boost::any value stored by program options
   // in order to use the << operator.
@@ -229,53 +272,62 @@ std::ostream& operator<<(std::ostream& os, const boost::any& a)
     std::string str = any_cast<std::string>(a);
     os << str;
     return os;
-  } catch (boost::bad_any_cast&) {
+  }
+  catch (boost::bad_any_cast&) {
   }
   try {
     double dbl = any_cast<double>(a);
     os << dbl;
     return os;
-  } catch (boost::bad_any_cast&) {
+  }
+  catch (boost::bad_any_cast&) {
   }
   try {
     int in = any_cast<int>(a);
     os << in;
     return os;
-  } catch (boost::bad_any_cast&) {
+  }
+  catch (boost::bad_any_cast&) {
   }
   try {
     bool b = any_cast<bool>(a);
     os << b;
     return os;
-  } catch (boost::bad_any_cast&) {
+  }
+  catch (boost::bad_any_cast&) {
   }
   try {
     unsigned uin = any_cast<unsigned>(a);
     os << uin;
     return os;
-  } catch (boost::bad_any_cast&) {
+  }
+  catch (boost::bad_any_cast&) {
   }
   try {
     std::vector<double> vec = any_cast<std::vector<double> >(a);
     os << vec;
     return os;
-  } catch (boost::bad_any_cast&) {
+  }
+  catch (boost::bad_any_cast&) {
   }
   try {
     std::vector<std::string> vec = any_cast<std::vector<std::string> >(a);
     os << vec;
     return os;
-  } catch (boost::bad_any_cast&) {
+  }
+  catch (boost::bad_any_cast&) {
   }
   return os;
 }
 
-void ProgramOptionsParser::printRegistryContents(std::ostream& out) const
+void
+ProgramOptionsParser::printRegistryContents(std::ostream& out) const
 {
   out << FactoryRegistry<TimeIntegrator>::get() << std::endl;
 }
 
-std::string ProgramOptionsParser::getConfigurationFileTemplate() const
+std::string
+ProgramOptionsParser::getConfigurationFileTemplate() const
 {
   std::stringstream out;
 
@@ -295,6 +347,12 @@ std::string ProgramOptionsParser::getConfigurationFileTemplate() const
 
   out << "\n# ****** Discretization Options ****** #\n\n";
   for (const auto& i : discretization.options()) {
+    std::string varname = i->long_name();
+    out << std::setw(30) << varname << " = " << vm[varname].value() << std::endl;
+  }
+
+  out << "\n# ****** Multigrid Options ****** #\n\n";
+  for (const auto& i : multigrid.options()) {
     std::string varname = i->long_name();
     out << std::setw(30) << varname << " = " << vm[varname].value() << std::endl;
   }

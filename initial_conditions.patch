@@ -1,0 +1,1034 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index cdc4615..70e3c0c 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -88,6 +88,7 @@ include_directories(
+         ${CUDA_MATH_INCLUDE_DIR}
+         ${RAJA_INCLUDE_DIRS}
+         ${EXTERNAL_INSTALL_DIR}/include
++        ${TINYXML2_INCLUDE_DIR}
+ )
+ 
+ link_directories(${EXTERNAL_INSTALL_DIR}/lib)
+diff --git a/external/CMakeLists.txt b/external/CMakeLists.txt
+index 41eefc8..6810fb3 100644
+--- a/external/CMakeLists.txt
++++ b/external/CMakeLists.txt
+@@ -2,11 +2,13 @@ include( ExternalGTest.cmake )
+ include( ExternalTabulate.cmake )
+ include( ExternalRAJA.cmake )
+ include( ExternalCelero.cmake )
++include( ExternalTinyXML2.cmake )
+ 
+ set( external_libraries
+         gtest_external
+         raja_external
+         tabulate_external
+         celero_external
++        tinyxml2_external
+         PARENT_SCOPE
+         )
+diff --git a/external/ExternalTinyXML2.cmake b/external/ExternalTinyXML2.cmake
+new file mode 100644
+index 0000000..6cacab5
+--- /dev/null
++++ b/external/ExternalTinyXML2.cmake
+@@ -0,0 +1,20 @@
++#########################################################
++message( STATUS "Building external TinyXML2 project.")
++#########################################################
++
++
++ExternalProject_Add(
++        tinyxml2_external
++        URL "https://github.com/leethomason/tinyxml2/archive/refs/tags/9.0.0.zip"
++        URL_MD5 2a3b1b8acdc1a0bd15e4010d91c505f8
++
++        SOURCE_DIR ${CMAKE_BINARY_DIR}/external/tinyxml2/
++        BINARY_DIR ${CMAKE_BINARY_DIR}/external/tinyxml2-build/
++        INSTALL_DIR ${EXTERNAL_INSTALL_DIR}
++        CMAKE_ARGS -D CMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_DIR} -D tinyxml2_BUILD_TESTING=Off -DBUILD_SHARED_LIBS=On
++)
++
++ExternalProject_Get_Property(tinyxml2_external source_dir)
++
++set(TINYXML2_INCLUDE_DIR ${CMAKE_BINARY_DIR}/external/tinyxml2/ CACHE PATH "")
++set(TINYXML2_LIBRARIES ${CMAKE_BINARY_DIR}/external/tinyxml2-build/libtinyxml2.so CACHE PATH "")
+diff --git a/file_io/CMakeLists.txt b/file_io/CMakeLists.txt
+index 4e90ae6..f84d3d7 100644
+--- a/file_io/CMakeLists.txt
++++ b/file_io/CMakeLists.txt
+@@ -1,9 +1,10 @@
+ set(fileio_src
+         vtk_solution_writer.cpp
++        vtk_solution_reader.cpp
+         )
+ 
+ add_library(fileio ${LIBTYPE} ${fileio_src})
+ 
+-target_link_libraries(fileio logger)
++target_link_libraries(fileio logger "${TINYXML2_LIBRARIES}")
+ 
+ add_dependencies(fileio ${external_libraries})
+diff --git a/file_io/vtk_solution_reader.cpp b/file_io/vtk_solution_reader.cpp
+new file mode 100644
+index 0000000..b03b4a9
+--- /dev/null
++++ b/file_io/vtk_solution_reader.cpp
+@@ -0,0 +1,142 @@
++#include "vtk_solution_reader.hpp"
++
++#include "data_structures/solution_state.hpp"
++#include "logger/logger.hpp"
++#include "tinyxml2.h"
++
++#include <boost/algorithm/string.hpp>
++#include <boost/algorithm/string/split.hpp>
++#include <boost/lexical_cast.hpp>
++
++#include <iostream>
++
++
++CartesianDomainDefinition
++VTKSolutionReader::getCartesianDomain()
++{
++  tinyxml2::XMLDocument doc;
++  auto                  timer = Logger::get().timer("VTKSolutionReader::getCartesianDomain() reading " + filename_);
++
++  doc.LoadFile(filename_.c_str());
++
++  const char* value_attribute = doc.FirstChildElement("VTKFile")
++                                    ->FirstChildElement("StructuredGrid")
++                                    ->FirstChildElement("Piece")
++                                    ->FirstAttribute()
++                                    ->Value();
++  std::string attribute_string(value_attribute);
++  // remove unwanted leading or trailing whitespace
++  boost::trim_if(attribute_string, boost::is_any_of("\t "));
++
++
++  // split by spsaces
++  std::vector<std::string> tokens;
++  boost::algorithm::split(tokens, attribute_string, boost::is_any_of("\t "), boost::token_compress_on);
++
++  // cast to ints, will throw on failure
++  const int nxbeg = boost::lexical_cast<int>(tokens[0]);
++  const int nxend = boost::lexical_cast<int>(tokens[1]);
++  const int nybeg = boost::lexical_cast<int>(tokens[2]);
++  const int nyend = boost::lexical_cast<int>(tokens[3]);
++  const int nzbeg = boost::lexical_cast<int>(tokens[4]);
++  const int nzend = boost::lexical_cast<int>(tokens[5]);
++
++  Logger::get().FatalAssert(nxbeg == 0, "VTKSolutionReader nxbeg == 0");
++  Logger::get().FatalAssert(nybeg == 0, "VTKSolutionReader nybeg == 0");
++  Logger::get().FatalAssert(nzbeg == 0, "VTKSolutionReader nzbeg == 0");
++
++  CartesianDomainDefinition domain;
++  domain.nx  = nxend;
++  domain.ny  = nyend;
++  dimension_ = 2;
++  if (nzend == nzbeg) {
++    domain.nz = 0;
++  }
++  else {
++    domain.nz  = nzend;
++    dimension_ = 3;
++  }
++
++  auto dataarray = doc.FirstChildElement("VTKFile")
++                       ->FirstChildElement("StructuredGrid")
++                       ->FirstChildElement("Piece")
++                       ->FirstChildElement("CellData")
++                       ->FirstChildElement("DataArray")
++                       ->GetText();
++
++  //  printf("Points GetText: %s\n", dataarray);
++  std::string cell_data_string(dataarray);
++  // remove unwanted leading or trailing whitespace
++  boost::trim_if(cell_data_string, boost::is_any_of("\t \n"));
++
++  std::vector<std::string> cell_data_tokens;
++  boost::algorithm::split(cell_data_tokens, cell_data_string, boost::is_any_of("\t\n "), boost::token_compress_on);
++
++  //  for (auto it = c
++  auto points_array = doc.FirstChildElement("VTKFile")
++                          ->FirstChildElement("StructuredGrid")
++                          ->FirstChildElement("Piece")
++                          ->FirstChildElement("Points")
++                          ->FirstChildElement("DataArray")
++                          ->GetText();
++
++  std::string points_data_string(points_array);
++  boost::trim_if(points_data_string, boost::is_any_of("\t \n"));
++  std::vector<std::string> point_data_tokens;
++  boost::algorithm::split(point_data_tokens, points_data_string, boost::is_any_of("\t\n "), boost::token_compress_on);
++
++
++  const int npoints = point_data_tokens.size() / 3;
++  Logger::get().FatalAssert(npoints == pow(nxend + 1, dimension_), "VTKSolutionReader npoints == (nxend+1)^dim");
++
++
++  std::vector<double> x, y, z;
++  for (size_t i = 0; i < point_data_tokens.size(); i += 3) {
++    x.push_back(boost::lexical_cast<double>(point_data_tokens[i]));
++    y.push_back(boost::lexical_cast<double>(point_data_tokens[i + 1]));
++    z.push_back(boost::lexical_cast<double>(point_data_tokens[i + 2]));
++  }
++
++  domain.xbeg = *min_element(x.begin(), x.end());
++  domain.xend = *max_element(x.begin(), x.end());
++  domain.ybeg = *min_element(y.begin(), y.end());
++  domain.zbeg = *min_element(z.begin(), z.end());
++
++  return domain;
++}
++
++void
++VTKSolutionReader::setSolution(const IndexArray& interior_indices, SolutionState& state)
++{
++  tinyxml2::XMLDocument doc;
++  auto                  timer = Logger::get().timer("VTKSolutionReader::setSolution() reading " + filename_);
++  doc.LoadFile(filename_.c_str());
++
++  auto solnarray = doc.FirstChildElement("VTKFile")
++                       ->FirstChildElement("StructuredGrid")
++                       ->FirstChildElement("Piece")
++                       ->FirstChildElement("CellData")
++                       ->FirstChildElement("DataArray")
++                       ->GetText();
++
++  std::string cell_data_string(solnarray);
++  // remove unwanted leading or trailing whitespace
++  boost::trim_if(cell_data_string, boost::is_any_of("\t \n"));
++
++  std::vector<std::string> cell_data_tokens;
++  boost::algorithm::split(cell_data_tokens, cell_data_string, boost::is_any_of("\t\n "), boost::token_compress_on);
++
++
++  std::vector<double> solution(cell_data_tokens.size());
++  for (size_t i = 0; i < solution.size(); ++i) {
++    solution[i] = boost::lexical_cast<double>(cell_data_tokens[i]);
++  }
++
++
++  auto idx = read_access_host(interior_indices);
++  auto sol = write_access_host(state.getVec(0));
++
++  for (int i = 0; i < idx.size(); ++i) {
++    sol[idx[i]] = solution[i];
++  }
++}
+diff --git a/file_io/vtk_solution_reader.hpp b/file_io/vtk_solution_reader.hpp
+new file mode 100644
+index 0000000..98405f1
+--- /dev/null
++++ b/file_io/vtk_solution_reader.hpp
+@@ -0,0 +1,23 @@
++#pragma once
++
++
++#include "spatial_discretization/spatial_discretization.hpp"
++#include "data_structures/managed_array.hpp"
++
++
++class SolutionState;
++
++
++class VTKSolutionReader /* : inherit public InitialConditions? better, move that into /initialization */ {
++ public:
++  VTKSolutionReader(const std::string& filename) : filename_(filename) {}
++
++  CartesianDomainDefinition getCartesianDomain();
++
++  void setSolution(const IndexArray& interior_indices, SolutionState& state);
++
++ private:
++  const std::string filename_;
++
++  int dimension_;
++};
+diff --git a/file_io/vtk_solution_writer.cpp b/file_io/vtk_solution_writer.cpp
+index 436a42c..38bd6cb 100644
+--- a/file_io/vtk_solution_writer.cpp
++++ b/file_io/vtk_solution_writer.cpp
+@@ -5,24 +5,23 @@
+ #include <limits>
+ 
+ #include "data_structures/solution_state.hpp"
++#include "governing_equations/cahn_hilliard/cahn_hilliard_state.hpp"
+ #include "logger/logger.hpp"
+ #include "spatial_discretization/discretization_2d_cart.hpp"
+ #include "spatial_discretization/discretization_3d_cart.hpp"
+-#include "governing_equations/cahn_hilliard/cahn_hilliard_state.hpp"
+ 
+ 
+-void write_solution_to_vtk(const SolutionState& state, const SpatialDiscretization& geom, std::string filename_withoutext)
++void
++write_solution_to_vtk(const SolutionState& state, const SpatialDiscretization& geom, std::string filename_withoutext)
+ {
+   try {
+     const auto& g2d = dynamic_cast<const Discretization2DCart&>(geom);
+     write_solution_to_vtk_2d(state, g2d, filename_withoutext);
+   }
+-  catch(...)
+-  {
++  catch (...) {
+     const auto& g3d = dynamic_cast<const Discretization3DCart&>(geom);
+     write_solution_to_vtk_3d(state, g3d, filename_withoutext);
+   }
+-
+ }
+ 
+ 
+@@ -37,21 +36,22 @@ write_solution_to_vtk_2d(const SolutionState& state, const Discretization2DCart&
+ 
+   const CahnHilliardState& cstate = dynamic_cast<const CahnHilliardState&>(state);
+ 
+-  const int ni  = geom.ni();
+-  auto      x   = read_access_host(geom.x());
+-  auto      y   = read_access_host(geom.y());
+-  auto      val = read_access_host(cstate.c());
++  const int ni = geom.ni();
++
++  auto x   = read_access_host(geom.xvertex());
++  auto y   = read_access_host(geom.yvertex());
++  auto val = read_access_host(cstate.c());
+ 
+   fout << "<VTKFile type=\"StructuredGrid\" version=\"1.0\" byte_order=\"LittleEndian\">\n";
+-  fout << "  <StructuredGrid WholeExtent=\"0 " << ni - 1 << " 0 " << ni - 1 << " 0 0\">\n";
+-  fout << "    <Piece Extent=\" 0 " << ni - 1 << " 0 " << ni - 1 << " 0 0\">\n";
++  fout << "  <StructuredGrid WholeExtent=\"0 " << ni << " 0 " << ni << " 0 0\">\n";
++  fout << "    <Piece Extent=\" 0 " << ni << " 0 " << ni << " 0 0\">\n";
+   fout << "      <PointData>\n";
+   fout << "      </PointData>\n";
+   fout << "      <CellData>\n";
+ 
+   fout << "    <DataArray type=\"Float64\" Name=\"c\" format=\"ascii\">\n";
+-  for (int i = 0; i < ni - 1; ++i) {
+-    for (int j = 0; j < ni - 1; ++j) {
++  for (int i = 0; i < ni; ++i) {
++    for (int j = 0; j < ni; ++j) {
+       fout << std::setprecision(std::numeric_limits<double>::digits10 + 1) << val(i, j) << "\n";
+     }
+   }
+@@ -61,8 +61,8 @@ write_solution_to_vtk_2d(const SolutionState& state, const Discretization2DCart&
+   fout << "        <DataArray type=\"Float64\" Name=\"Points\" NumberOfComponents=\"3\" "
+           "format=\"ascii\">\n";
+ 
+-  for (int i = 0; i < ni; ++i) {
+-    for (int j = 0; j < ni; ++j) {
++  for (int i = 0; i < ni + 1; ++i) {
++    for (int j = 0; j < ni + 1; ++j) {
+       fout << std::setprecision(std::numeric_limits<double>::digits10 + 1) << x(i, j) << " " << y(i, j) << " 0.0\n";
+     }
+   }
+@@ -87,22 +87,22 @@ write_solution_to_vtk_3d(const SolutionState& state, const Discretization3DCart&
+   const CahnHilliardState3D& cstate = dynamic_cast<const CahnHilliardState3D&>(state);
+ 
+   const int ni  = geom.ni();
+-  auto      x   = read_access_host(geom.x());
+-  auto      y   = read_access_host(geom.y());
+-  auto      z   = read_access_host(geom.z());
++  auto      x   = read_access_host(geom.xvertex());
++  auto      y   = read_access_host(geom.yvertex());
++  auto      z   = read_access_host(geom.zvertex());
+   auto      val = read_access_host(cstate.c());
+ 
+   fout << "<VTKFile type=\"StructuredGrid\" version=\"1.0\" byte_order=\"LittleEndian\">\n";
+-  fout << "  <StructuredGrid WholeExtent=\"0 " << ni - 1 << " 0 " << ni - 1 << " 0 " << ni-1 << "\">\n";
+-  fout << "    <Piece Extent=\" 0 " << ni - 1 << " 0 " << ni - 1 << " 0 " << ni-1 << "\">\n";
++  fout << "  <StructuredGrid WholeExtent=\"0 " << ni << " 0 " << ni << " 0 " << ni << "\">\n";
++  fout << "    <Piece Extent=\" 0 " << ni << " 0 " << ni << " 0 " << ni << "\">\n";
+   fout << "      <PointData>\n";
+   fout << "      </PointData>\n";
+   fout << "      <CellData>\n";
+ 
+   fout << "    <DataArray type=\"Float64\" Name=\"c\" format=\"ascii\">\n";
+-  for (int i = 0; i < ni - 1; ++i) {
+-    for (int j = 0; j < ni - 1; ++j) {
+-      for (int k = 0; k < ni - 1; ++k){
++  for (int i = 0; i < ni; ++i) {
++    for (int j = 0; j < ni; ++j) {
++      for (int k = 0; k < ni; ++k) {
+         fout << std::setprecision(std::numeric_limits<double>::digits10 + 1) << val(i, j, k) << "\n";
+       }
+     }
+@@ -113,10 +113,11 @@ write_solution_to_vtk_3d(const SolutionState& state, const Discretization3DCart&
+   fout << "        <DataArray type=\"Float64\" Name=\"Points\" NumberOfComponents=\"3\" "
+           "format=\"ascii\">\n";
+ 
+-  for (int i = 0; i < ni; ++i) {
+-    for (int j = 0; j < ni; ++j) {
+-      for (int k = 0; k < ni; ++k) {
+-        fout << std::setprecision(std::numeric_limits<double>::digits10 + 1) << x(i, j, k) << " " << y(i, j, k) << " " << z(i,j,k) << "\n";
++  for (int i = 0; i < ni + 1; ++i) {
++    for (int j = 0; j < ni + 1; ++j) {
++      for (int k = 0; k < ni + 1; ++k) {
++        fout << std::setprecision(std::numeric_limits<double>::digits10 + 1) << x(i, j, k) << " " << y(i, j, k) << " "
++             << z(i, j, k) << "\n";
+       }
+     }
+   }
+diff --git a/governing_equations/CMakeLists.txt b/governing_equations/CMakeLists.txt
+index f32699f..d3bcb39 100644
+--- a/governing_equations/CMakeLists.txt
++++ b/governing_equations/CMakeLists.txt
+@@ -3,7 +3,9 @@ set(governing_equations_src
+         cahn_hilliard/cahn_hilliard_initial_conditions.cpp
+         residual_calculator.cpp
+         cahn_hilliard/cahn_hilliard_solution_monitor.cpp
+-        cahn_hilliard/cahn_hilliard_3d_fd.cpp)
++        cahn_hilliard/cahn_hilliard_3d_fd.cpp
++        initial_conditions_from_file.cpp
++        )
+ 
+ 
+ if(MADG_USE_CUDA)
+diff --git a/governing_equations/initial_conditions_from_file.cpp b/governing_equations/initial_conditions_from_file.cpp
+new file mode 100644
+index 0000000..5ce9ae6
+--- /dev/null
++++ b/governing_equations/initial_conditions_from_file.cpp
+@@ -0,0 +1,11 @@
++#include "initial_conditions_from_file.hpp"
++
++#include "time_integrable_rhs.hpp"
++#include "file_io/vtk_solution_reader.hpp"
++
++
++void
++InitialConditionsFromFile::set(const TimeIntegrableRHS& rhs, SolutionState& state) const
++{
++  reader_.setSolution(rhs.interiorIndices(), state);
++}
+diff --git a/governing_equations/initial_conditions_from_file.hpp b/governing_equations/initial_conditions_from_file.hpp
+new file mode 100644
+index 0000000..277dfcd
+--- /dev/null
++++ b/governing_equations/initial_conditions_from_file.hpp
+@@ -0,0 +1,19 @@
++#pragma once
++
++
++#include "governing_equations/initial_conditions.hpp"
++
++class VTKSolutionReader;
++
++
++class InitialConditionsFromFile : public InitialConditions {
++ public:
++  InitialConditionsFromFile(VTKSolutionReader& reader) : reader_(reader) {}
++
++  virtual ~InitialConditionsFromFile() = default;
++
++  void set(const TimeIntegrableRHS&, SolutionState& state) const override;
++
++ private:
++  VTKSolutionReader& reader_;
++};
+diff --git a/initialization/puppeteer.cpp b/initialization/puppeteer.cpp
+index d148c0d..7452c3d 100644
+--- a/initialization/puppeteer.cpp
++++ b/initialization/puppeteer.cpp
+@@ -1,5 +1,6 @@
+ #include "puppeteer.hpp"
+ 
++#include "file_io/vtk_solution_reader.hpp"
+ #include "file_io/vtk_solution_writer.hpp"
+ #include "governing_equations/cahn_hilliard/cahn_hilliard_2d_fd.hpp"
+ #include "governing_equations/cahn_hilliard/cahn_hilliard_3d_fd.hpp"
+@@ -7,6 +8,7 @@
+ #include "governing_equations/cahn_hilliard/cahn_hilliard_parameters.hpp"
+ #include "governing_equations/cahn_hilliard/cahn_hilliard_solution_monitor.hpp"
+ #include "governing_equations/initial_conditions.hpp"
++#include "governing_equations/initial_conditions_from_file.hpp"
+ #include "governing_equations/residual_calculator.hpp"
+ #include "logger/logger.hpp"
+ #include "spatial_discretization/discretization_2d_cart.hpp"
+@@ -24,6 +26,12 @@ Puppeteer::Puppeteer(const std::vector<std::string>& cmd_line)
+   Logger::get().initLogFile(Options::get().log_file());
+   Logger::get().InfoMessage(parser.getConfigurationFileTemplate());
+ 
++  const auto init_cond_file = Options::get().initial_condition_file();
++  if (init_cond_file != "none") {
++    solution_reader_ = std::make_unique<VTKSolutionReader>(init_cond_file);
++    Logger::get().InfoMessage("Using initial conditions file " + init_cond_file);
++  }
++
+   //
+   // construct the primary simulation components
+   //
+@@ -72,23 +80,27 @@ Puppeteer::geomFactory()
+ {
+   const int nhalo = 2;  // should be dependent on equation and order / stencil size
+ 
++  CartesianDomainDefinition domain;
++
++  if (solution_reader_) {
++    domain = solution_reader_->getCartesianDomain();
++  }
++  else {
++    domain.nx   = Options::get().domain_resolution();
++    domain.ny   = domain.nx;
++    domain.nz   = domain.nx;
++    domain.xbeg = Options::get().domain_x_begin();
++    domain.xend = Options::get().domain_x_end();
++    domain.ybeg = Options::get().domain_x_begin();
++    domain.zbeg = Options::get().domain_x_begin();
++  }
++
+   const int dim = Options::get().dimension();
+   switch (dim) {
+     case 2:
+-      return std::make_unique<Discretization2DCart>(
+-          Options::get().domain_resolution(),
+-          nhalo,
+-          Options::get().domain_x_begin(),
+-          Options::get().domain_x_end(),
+-          Options::get().domain_x_begin());
++      return std::make_unique<Discretization2DCart>(domain, nhalo);
+     case 3:
+-      return std::make_unique<Discretization3DCart>(
+-          Options::get().domain_resolution(),
+-          nhalo,
+-          Options::get().domain_x_begin(),
+-          Options::get().domain_x_end(),
+-          Options::get().domain_x_begin(),
+-          Options::get().domain_x_begin());
++      return std::make_unique<Discretization3DCart>(domain, nhalo);
+     default:
+       Logger::get().FatalMessage("Only dimensions 2 and 3 supported.");
+   }
+@@ -126,8 +138,13 @@ Puppeteer::initialConditionsFactory()
+   Logger::get().FatalAssert(
+       Options::get().equation_type() == "cahn-hilliard", "Only equation_type=cahn-hilliard currently supported.");
+ 
+-  CahnHilliardParameters params;
+-  return std::make_unique<CahnHilliardInitialConditions>(params);
++  if (solution_reader_) {
++    return std::make_unique<InitialConditionsFromFile>(*solution_reader_);
++  }
++  else {
++    CahnHilliardParameters params;
++    return std::make_unique<CahnHilliardInitialConditions>(params);
++  }
+ }
+ 
+ 
+diff --git a/initialization/puppeteer.hpp b/initialization/puppeteer.hpp
+index 5dcd3ba..f10f6cf 100644
+--- a/initialization/puppeteer.hpp
++++ b/initialization/puppeteer.hpp
+@@ -11,6 +11,7 @@ class TimeIntegrableRHS;
+ class SpatialDiscretization;
+ class InitialConditions;
+ class TimeIntegrator;
++class VTKSolutionReader;
+ 
+ 
+ class Puppeteer {
+@@ -26,11 +27,12 @@ class Puppeteer {
+   std::unique_ptr<TimeIntegrableRHS>     rhs_;
+   std::unique_ptr<InitialConditions>     initial_conditions_;
+   std::unique_ptr<TimeIntegrator>        time_integrator_;
++  std::unique_ptr<VTKSolutionReader>     solution_reader_;
+ 
+-  static std::unique_ptr<TimeIntegrableRHS>     rhsFactory(SpatialDiscretization&);
+-  static std::unique_ptr<SpatialDiscretization> geomFactory();
+-  static std::unique_ptr<InitialConditions>     initialConditionsFactory();
+-  static std::unique_ptr<TimeIntegrator>        timeIntegratorFactory(TimeIntegrableRHS&);
++  static std::unique_ptr<TimeIntegrableRHS> rhsFactory(SpatialDiscretization&);
++  std::unique_ptr<SpatialDiscretization>    geomFactory();
++  std::unique_ptr<InitialConditions>        initialConditionsFactory();
++  static std::unique_ptr<TimeIntegrator>    timeIntegratorFactory(TimeIntegrableRHS&);
+ 
+   void attachTimeObservers(TimeIntegrator&);
+   void attachResidualObservers(TimeIntegrator&, TimeIntegrableRHS&);
+diff --git a/program_options/program_options.hpp b/program_options/program_options.hpp
+index d0917c4..7c2bb0d 100644
+--- a/program_options/program_options.hpp
++++ b/program_options/program_options.hpp
+@@ -23,6 +23,7 @@ class Options
+   // file options
+   const std::string& config_file() const { return config_file_; }
+   const std::string& solution_output_file() const { return solution_output_file_; }
++  const std::string& initial_condition_file() const { return initial_condition_file_; }
+   const std::string& log_file() const { return log_file_; }
+   int                log_frequency() const { return log_frequency_; }
+ 
+@@ -63,6 +64,7 @@ class Options
+   // file options
+   std::string config_file_;
+   std::string solution_output_file_;
++  std::string initial_condition_file_;
+   std::string log_file_;
+   int         log_frequency_;
+ 
+diff --git a/program_options/program_options_parser.cpp b/program_options/program_options_parser.cpp
+index 43f4ec7..9b5ef9d 100644
+--- a/program_options/program_options_parser.cpp
++++ b/program_options/program_options_parser.cpp
+@@ -85,6 +85,9 @@ ProgramOptionsParser::ProgramOptionsParser()
+       "solution_output_file",
+       po::value<std::string>(&Options::get().solution_output_file_),
+       "Solution output file name, without file extension.")(
++      "initial_condition_file",
++      po::value<std::string>(&Options::get().initial_condition_file_)->default_value("none"),
++      "Filename containing and initial solution. Overrides input values if not 'none'.")(
+       "log_file",
+       po::value<std::string>(&Options::get().log_file_)->default_value("maDGiCart"),
+       "Solution output file name, without file extension.")(
+diff --git a/spatial_discretization/discretization_2d_cart.cpp b/spatial_discretization/discretization_2d_cart.cpp
+index f2c84a5..1883d8c 100644
+--- a/spatial_discretization/discretization_2d_cart.cpp
++++ b/spatial_discretization/discretization_2d_cart.cpp
+@@ -2,12 +2,7 @@
+ 
+ #include <memory>
+ 
+-Discretization2DCart::Discretization2DCart(
+-    int    ni,
+-    int    nhalo,
+-    double xbeg,
+-    double xend,
+-    double ybeg)
++Discretization2DCart::Discretization2DCart(int ni, int nhalo, double xbeg, double xend, double ybeg)
+     : SpatialDiscretization("Discretization2DCart"),
+       ni_(ni),
+       nhalo_(nhalo),
+@@ -16,7 +11,9 @@ Discretization2DCart::Discretization2DCart(
+       interior_indices_(*this, "InteriorIndices", ni * ni),
+       boundary_indices_(*this, "BoundaryIndices", (ni + 2 * nhalo) * nhalo_ * 2 + ni * nhalo_ * 2),
+       x_coord_(*this, "CoordinateX", ni, ni, nhalo),
+-      y_coord_(*this, "CoordinateY", ni, ni, nhalo)
++      y_coord_(*this, "CoordinateY", ni, ni, nhalo),
++      x_vertex_coord_(*this, "VertexCoordinateX", ni + 1, ni + 1, nhalo),
++      y_vertex_coord_(*this, "VertexCoordinateY", ni + 1, ni + 1, nhalo)
+ {
+   {
+     auto idx_list = write_access_host(interior_indices_);
+@@ -66,15 +63,29 @@ Discretization2DCart::Discretization2DCart(
+     }
+   }
+ 
+-  auto x = write_access_host(x_coord_);
+-  auto y = write_access_host(y_coord_);
+-  const real_wp xc_beg = xbeg+0.5*dx_;
+-  const real_wp yc_beg = ybeg+0.5*dx_;
++  {
++    auto xv = write_access_host(x_vertex_coord_);
++    auto yv = write_access_host(y_vertex_coord_);
+ 
+-  for (int i = -nhalo; i < ni+nhalo; ++i){
+-    for (int j = -nhalo; j < ni+nhalo; ++j){
+-      x(i,j) = xc_beg + real_wp(i)*dx_;
+-      y(i,j) = yc_beg + real_wp(j)*dx_;
++    for (int i = -nhalo; i < ni + nhalo + 1; ++i) {
++      for (int j = -nhalo; j < ni + nhalo + 1; ++j) {
++        xv(i, j) = xbeg + dx_ * real_wp(i);
++        yv(i, j) = ybeg + dx_ * real_wp(j);
++      }
++    }
++  }
++
++  {
++    auto xv = read_access_host(x_vertex_coord_);
++    auto yv = read_access_host(y_vertex_coord_);
++    auto x  = write_access_host(x_coord_);
++    auto y  = write_access_host(y_coord_);
++
++    for (int i = -nhalo; i < ni + nhalo; ++i) {
++      for (int j = -nhalo; j < ni + nhalo; ++j) {
++        x(i, j) = 0.5 * (xv(i, j) + xv(i + 1, j));
++        y(i, j) = 0.5 * (yv(i, j) + yv(i, j + 1));
++      }
+     }
+   }
+ }
+@@ -179,8 +190,9 @@ Discretization2DCart::biharmonic(const ManagedArray2D<real_wp>& state_in, Manage
+     f.getIJ(idx[ii], i, j);
+ 
+     del4f(i, j) = (f(i, j + 2) + 2.0 * f(i - 1, j + 1) - 8.0 * f(i, j + 1) + 2.0 * f(i + 1, j + 1) + f(i - 2, j) -
+-                  8.0 * f(i - 1, j) + 20.0 * f(i, j) - 8.0 * f(i + 1, j) + f(i + 2, j) + 2.0 * f(i - 1, j - 1) -
+-                  8.0 * f(i, j - 1) + 2.0 * f(i + 1, j - 1) + 1.0 * f(i, j - 2)) / dx4;
++                   8.0 * f(i - 1, j) + 20.0 * f(i, j) - 8.0 * f(i + 1, j) + f(i + 2, j) + 2.0 * f(i - 1, j - 1) -
++                   8.0 * f(i, j - 1) + 2.0 * f(i + 1, j - 1) + 1.0 * f(i, j - 2)) /
++                  dx4;
+   });
+ }
+ 
+diff --git a/spatial_discretization/discretization_2d_cart.hpp b/spatial_discretization/discretization_2d_cart.hpp
+index 54bd009..21809b1 100644
+--- a/spatial_discretization/discretization_2d_cart.hpp
++++ b/spatial_discretization/discretization_2d_cart.hpp
+@@ -8,6 +8,12 @@ class Discretization2DCart : public SpatialDiscretization {
+  public:
+   Discretization2DCart(int ni, int nhalo, double xbeg, double xend, double ybeg);
+ 
++  Discretization2DCart(const CartesianDomainDefinition& domain, int nhalo)
++      : Discretization2DCart(domain.nx, nhalo, domain.xbeg, domain.xend, domain.ybeg)
++  {
++  }
++
++
+   ~Discretization2DCart() = default;
+ 
+   const IndexArray& interiorIndices() const { return interior_indices_; }
+@@ -15,10 +21,10 @@ class Discretization2DCart : public SpatialDiscretization {
+ 
+   std::unique_ptr<ManagedArray2D<real_wp>> createRealArray() const;
+ 
+-  int ni() const { return ni_; }
+-  int nhalo() const { return nhalo_; }
++  int    ni() const { return ni_; }
++  int    nhalo() const { return nhalo_; }
+   double dx() const { return dx_; }
+-  int nInteriorPoints() const { return ni()*ni(); }
++  int    nInteriorPoints() const { return ni() * ni(); }
+ 
+   void applyPeriodicBoundaryConditions(ManagedArray2D<real_wp>& state) const;
+ 
+@@ -30,14 +36,20 @@ class Discretization2DCart : public SpatialDiscretization {
+   const ManagedArray2DOwning<real_wp>& x() const { return x_coord_; }
+   const ManagedArray2DOwning<real_wp>& y() const { return y_coord_; }
+ 
++  const ManagedArray2DOwning<real_wp>& xvertex() const { return x_vertex_coord_; }
++  const ManagedArray2DOwning<real_wp>& yvertex() const { return y_vertex_coord_; }
++
+  private:
+-  const int ni_;
+-  const int nhalo_;
+-  const int ninhalo_;
++  const int    ni_;
++  const int    nhalo_;
++  const int    ninhalo_;
+   const double dx_;
+ 
+-  IndexArray interior_indices_;
+-  IndexArray boundary_indices_;
++  IndexArray                    interior_indices_;
++  IndexArray                    boundary_indices_;
+   ManagedArray2DOwning<real_wp> x_coord_;
+   ManagedArray2DOwning<real_wp> y_coord_;
++
++  ManagedArray2DOwning<real_wp> x_vertex_coord_;
++  ManagedArray2DOwning<real_wp> y_vertex_coord_;
+ };
+diff --git a/spatial_discretization/discretization_3d_cart.cpp b/spatial_discretization/discretization_3d_cart.cpp
+index 3b21258..153b326 100644
+--- a/spatial_discretization/discretization_3d_cart.cpp
++++ b/spatial_discretization/discretization_3d_cart.cpp
+@@ -11,7 +11,10 @@ Discretization3DCart::Discretization3DCart(int ni, int nhalo, double xbeg, doubl
+       periodic_receiver_indices_(*this, "PeriodicReceiverIndices", (pow(ninhalo_, 3) - pow(ni_, 3))),
+       x_coord_(*this, "CoordinateX", ni, ni, ni, nhalo),
+       y_coord_(*this, "CoordinateY", ni, ni, ni, nhalo),
+-      z_coord_(*this, "CoordinateZ", ni, ni, ni, nhalo)
++      z_coord_(*this, "CoordinateZ", ni, ni, ni, nhalo),
++      x_vertex_coord_(*this, "VertexCoordinateX", ni + 1, ni + 1, ni + 1, nhalo),
++      y_vertex_coord_(*this, "VertexCoordinateY", ni + 1, ni + 1, ni + 1, nhalo),
++      z_vertex_coord_(*this, "VertexCoordinateZ", ni + 1, ni + 1, ni + 1, nhalo)
+ {
+   {
+     auto idx_list = write_access_host(interior_indices_);
+@@ -27,22 +30,37 @@ Discretization3DCart::Discretization3DCart(int ni, int nhalo, double xbeg, doubl
+     }
+   }
+ 
++  {
++    auto xv = write_access_host(x_vertex_coord_);
++    auto yv = write_access_host(y_vertex_coord_);
++    auto zv = write_access_host(z_vertex_coord_);
++
++    for (int i = -nhalo; i < ni + nhalo + 1; ++i) {
++      for (int j = -nhalo; j < ni + nhalo + 1; ++j) {
++        for (int k = -nhalo; k < ni + nhalo + 1; ++k) {
++          xv(i, j, k) = xbeg + dx_ * real_wp(i);
++          yv(i, j, k) = ybeg + dx_ * real_wp(j);
++          zv(i, j, k) = zbeg + dx_ * real_wp(k);
++        }
++      }
++    }
++  }
++
+ 
+   {
++    auto xv = read_access_host(x_vertex_coord_);
++    auto yv = read_access_host(y_vertex_coord_);
++    auto zv = read_access_host(z_vertex_coord_);
+     auto x = write_access_host(x_coord_);
+     auto y = write_access_host(y_coord_);
+     auto z = write_access_host(z_coord_);
+ 
+-    const real_wp xc_beg = xbeg + 0.5 * dx_;
+-    const real_wp yc_beg = ybeg + 0.5 * dx_;
+-    const real_wp zc_beg = zbeg + 0.5 * dx_;
+-
+     for (int i = -nhalo; i < ni + nhalo; ++i) {
+       for (int j = -nhalo; j < ni + nhalo; ++j) {
+         for (int k = -nhalo; k < ni + nhalo; ++k) {
+-          x(i, j, k) = xc_beg + real_wp(i) * dx_;
+-          y(i, j, k) = yc_beg + real_wp(j) * dx_;
+-          z(i, j, k) = zc_beg + real_wp(k) * dx_;
++          x(i, j, k) = 0.5*(xv(i, j, k) + xv(i+1, j, k));
++          y(i, j, k) = 0.5*(yv(i, j, k) + yv(i, j+1, k));
++          z(i, j, k) = 0.5*(zv(i, j, k) + zv(i, j, k+1));
+         }
+       }
+     }
+diff --git a/spatial_discretization/discretization_3d_cart.hpp b/spatial_discretization/discretization_3d_cart.hpp
+index 0d697e1..caf3bb8 100644
+--- a/spatial_discretization/discretization_3d_cart.hpp
++++ b/spatial_discretization/discretization_3d_cart.hpp
+@@ -7,17 +7,22 @@ class Discretization3DCart : public SpatialDiscretization {
+  public:
+   Discretization3DCart(int ni, int nhalo, double xbeg, double xend, double ybeg, double zbeg);
+ 
++  Discretization3DCart(const CartesianDomainDefinition& domain, int nhalo)
++      : Discretization3DCart(domain.nx, nhalo, domain.xbeg, domain.xend, domain.ybeg, domain.zbeg)
++  {
++  }
++
+   ~Discretization3DCart() = default;
+ 
+   const IndexArray& interiorIndices() const { return interior_indices_; }
+-//  const IndexArray& boundaryIndices() const { return boundary_indices_; }
++  //  const IndexArray& boundaryIndices() const { return boundary_indices_; }
+ 
+   std::unique_ptr<ManagedArray3D<real_wp>> createRealArray() const;
+ 
+-  int ni() const { return ni_; }
+-  int nhalo() const { return nhalo_; }
++  int    ni() const { return ni_; }
++  int    nhalo() const { return nhalo_; }
+   double dx() const { return dx_; }
+-  int nInteriorPoints() const { return interior_indices_.size(); }
++  int    nInteriorPoints() const { return interior_indices_.size(); }
+ 
+   void applyPeriodicBoundaryConditions(ManagedArray3D<real_wp>& state) const;
+ 
+@@ -29,10 +34,14 @@ class Discretization3DCart : public SpatialDiscretization {
+   const ManagedArray3DOwning<real_wp>& y() const { return y_coord_; }
+   const ManagedArray3DOwning<real_wp>& z() const { return z_coord_; }
+ 
++  const ManagedArray3DOwning<real_wp>& xvertex() const { return x_vertex_coord_; }
++  const ManagedArray3DOwning<real_wp>& yvertex() const { return y_vertex_coord_; }
++  const ManagedArray3DOwning<real_wp>& zvertex() const { return z_vertex_coord_; }
++
+  private:
+-  const int ni_;
+-  const int nhalo_;
+-  const int ninhalo_;
++  const int    ni_;
++  const int    nhalo_;
++  const int    ninhalo_;
+   const double dx_;
+ 
+   IndexArray interior_indices_;
+@@ -43,4 +52,8 @@ class Discretization3DCart : public SpatialDiscretization {
+   ManagedArray3DOwning<real_wp> x_coord_;
+   ManagedArray3DOwning<real_wp> y_coord_;
+   ManagedArray3DOwning<real_wp> z_coord_;
++
++  ManagedArray3DOwning<real_wp> x_vertex_coord_;
++  ManagedArray3DOwning<real_wp> y_vertex_coord_;
++  ManagedArray3DOwning<real_wp> z_vertex_coord_;
+ };
+diff --git a/spatial_discretization/spatial_discretization.hpp b/spatial_discretization/spatial_discretization.hpp
+index ccfe944..5d1d3ad 100644
+--- a/spatial_discretization/spatial_discretization.hpp
++++ b/spatial_discretization/spatial_discretization.hpp
+@@ -3,6 +3,18 @@
+ #include "data_structures/managed_array_owner.hpp"
+ 
+ 
++struct CartesianDomainDefinition {
++  int nx;
++  int ny;
++  int nz;
++  double xbeg;
++  double xend;
++  double ybeg;
++  double zbeg;
++};
++
++
++
+ class SpatialDiscretization : public ManagedArrayOwner {
+  public:
+   SpatialDiscretization(std::string classname)
+diff --git a/testing/unit_tests/CMakeLists.txt b/testing/unit_tests/CMakeLists.txt
+index 53195d5..e633a09 100644
+--- a/testing/unit_tests/CMakeLists.txt
++++ b/testing/unit_tests/CMakeLists.txt
+@@ -4,7 +4,7 @@ add_executable(unit_testing
+         governing_equations/cahn_hilliard_2d_fd_test.cpp
+         time_stepping/cahn_hilliard_regression_test.cpp
+         spatial_discretization/discretization_3d_cart_test.cpp
+-        governing_equations/cahn_hilliard_3d_fd_test.cpp)
++        governing_equations/cahn_hilliard_3d_fd_test.cpp file_io_test.cpp)
+ 
+ add_dependencies(unit_testing ${external_libraries})
+ 
+diff --git a/testing/unit_tests/file_io_test.cpp b/testing/unit_tests/file_io_test.cpp
+new file mode 100644
+index 0000000..dc4b9cf
+--- /dev/null
++++ b/testing/unit_tests/file_io_test.cpp
+@@ -0,0 +1,157 @@
++#include <gtest/gtest.h>
++
++#include "typedefs.hpp"
++
++#include "data_structures/exec_includes.hpp"
++#include "file_io/vtk_solution_reader.hpp"
++#include "file_io/vtk_solution_writer.hpp"
++#include "governing_equations/cahn_hilliard/cahn_hilliard_2d_fd.hpp"
++#include "governing_equations/cahn_hilliard/cahn_hilliard_3d_fd.hpp"
++#include "spatial_discretization/discretization_2d_cart.hpp"
++
++
++TEST(FileIO, Discretization2DCartWriteAndRead)
++{
++  const std::string filename_without_ext = "fileio_unittest";
++  const std::string filename_with_ext    = filename_without_ext + ".vts";
++
++  const int    N     = 16;
++  const int    Nhalo = 2;
++  const double xbeg  = -2;
++  const double xend  = 3;
++  const double ybeg  = -1;
++
++
++  Discretization2DCart   geom(N, Nhalo, xbeg, xend, ybeg);
++  CahnHilliardParameters ch_params;
++  CahnHilliard2DFD       rhs(geom, ch_params);
++
++  //  write a specific solution file to disk
++  {
++    auto state = rhs.createSolutionState();
++
++
++    auto c = write_access_host(dynamic_cast<CahnHilliardState&>(*state).c());
++
++    auto x   = read_access_host(geom.x());
++    auto y   = read_access_host(geom.y());
++    auto idx = read_access_host(geom.interiorIndices());
++
++
++    maDGForAllHost(ii, 0, idx.size(), {
++      int i;
++      int j;
++      c.getIJ(idx[ii], i, j);
++      c(i, j) = sin(x(i, j)) * cos(y(i, j));
++    });
++
++    write_solution_to_vtk(*state, geom, filename_without_ext);
++  }
++
++
++  // read back the solution file
++  {
++    VTKSolutionReader file_reader(filename_with_ext);
++
++    const auto domain_defn = file_reader.getCartesianDomain();
++    EXPECT_EQ(domain_defn.nx, N);
++    EXPECT_EQ(domain_defn.ny, N);
++    EXPECT_EQ(domain_defn.nz, 0);
++    EXPECT_EQ(domain_defn.xbeg, xbeg);
++    EXPECT_EQ(domain_defn.xend, xend);
++    EXPECT_EQ(domain_defn.ybeg, ybeg);
++    EXPECT_EQ(domain_defn.zbeg, 0);
++
++    auto input_state = rhs.createSolutionState();
++    file_reader.setSolution(geom.interiorIndices(), *input_state);
++
++
++    auto x   = read_access_host(geom.x());
++    auto y   = read_access_host(geom.y());
++    auto idx = read_access_host(geom.interiorIndices());
++    auto c   = read_access_host(dynamic_cast<CahnHilliardState&>(*input_state).c());
++
++    maDGForAllHost(ii, 0, idx.size(), {
++      int i;
++      int j;
++      c.getIJ(idx[ii], i, j);
++      EXPECT_NEAR(c(i, j), sin(x(i, j)) * cos(y(i, j)), 1.e-16);
++    });
++  }
++}
++
++
++TEST(FileIO, Discretization3DCartWriteAndRead)
++{
++  const std::string filename_without_ext = "fileio3d_unittest";
++  const std::string filename_with_ext    = filename_without_ext + ".vts";
++
++  const int    N     = 16;
++  const int    Nhalo = 2;
++  const double xbeg  = -2;
++  const double xend  = 3;
++  const double ybeg  = -1;
++  const double zbeg  = 1;
++
++
++  Discretization3DCart   geom(N, Nhalo, xbeg, xend, ybeg, zbeg);
++  CahnHilliardParameters ch_params;
++  CahnHilliard3DFD       rhs(geom, ch_params);
++
++  //  write a specific solution file to disk
++  {
++    auto state = rhs.createSolutionState();
++
++
++    auto c = write_access_host(dynamic_cast<CahnHilliardState3D&>(*state).c());
++
++    auto x   = read_access_host(geom.x());
++    auto y   = read_access_host(geom.y());
++    auto z   = read_access_host(geom.z());
++    auto idx = read_access_host(geom.interiorIndices());
++
++
++    maDGForAllHost(ii, 0, idx.size(), {
++      int i;
++      int j;
++      int k;
++      c.getIJK(idx[ii], i, j, k);
++      c(i, j, k) = sin(x(i, j, k)) * cos(y(i, j, k)) * cos(z(i, j, k));
++    });
++
++    write_solution_to_vtk(*state, geom, filename_without_ext);
++  }
++
++
++  // read back the solution file
++  {
++    VTKSolutionReader file_reader(filename_with_ext);
++
++    const auto domain_defn = file_reader.getCartesianDomain();
++    EXPECT_EQ(domain_defn.nx, N);
++    EXPECT_EQ(domain_defn.ny, N);
++    EXPECT_EQ(domain_defn.nz, N);
++    EXPECT_EQ(domain_defn.xbeg, xbeg);
++    EXPECT_EQ(domain_defn.xend, xend);
++    EXPECT_EQ(domain_defn.ybeg, ybeg);
++    EXPECT_EQ(domain_defn.zbeg, zbeg);
++
++    auto input_state = rhs.createSolutionState();
++    file_reader.setSolution(geom.interiorIndices(), *input_state);
++
++
++    auto x   = read_access_host(geom.x());
++    auto y   = read_access_host(geom.y());
++    auto z   = read_access_host(geom.z());
++    auto idx = read_access_host(geom.interiorIndices());
++    auto c   = read_access_host(dynamic_cast<CahnHilliardState3D&>(*input_state).c());
++
++    maDGForAllHost(ii, 0, idx.size(), {
++      int i;
++      int j;
++      int k;
++      c.getIJK(idx[ii], i, j, k);
++      EXPECT_NEAR(c(i, j, k), sin(x(i, j, k)) * cos(y(i, j, k)) * cos(z(i, j, k)), 1.e-16);
++    });
++  }
++}

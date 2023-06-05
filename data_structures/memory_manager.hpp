@@ -29,6 +29,11 @@ class MemoryManager : public UniquelyNamedObject<MemoryManager<BaseType>>, priva
 
   void deallocate(MemoryHandle handle);
 
+  MemoryHandle allocateView(const std::string& unique_name, size_t size, BaseType* host_data, BaseType* dev_data);
+
+  void deallocateView(MemoryHandle handle);
+
+
   // todo these should return spans
   BaseType* hostData(MemoryHandle handle);
 
@@ -62,11 +67,13 @@ class MemoryManager : public UniquelyNamedObject<MemoryManager<BaseType>>, priva
   using MapType = std::unordered_map<Key, Value>;
 
   MapType<MapKeyType, BaseType*>    host_data_;
+  MapType<MapKeyType, BaseType*>    borrowed_host_data_;
   MapType<MapKeyType, int_t>        data_sizes_;
   MapType<MapKeyType, MemoryHandle> handles_;
 
-#ifdef MADG_USE_CUDA
+#ifdef MADG_USE_GPU
   MapType<MapKeyType, BaseType*> device_data_;
+  MapType<MapKeyType, BaseType*> borrowed_device_data_;
 #endif
 
 #ifndef NDEBUG

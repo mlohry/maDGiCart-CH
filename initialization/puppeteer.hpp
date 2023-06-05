@@ -22,6 +22,9 @@ class Puppeteer {
 
   void run();
 
+  const TimeIntegrator&        timeIntegrator() const { return *time_integrator_; }
+  const SpatialDiscretization& spatialDiscretization() const { return *geom_; }
+
  private:
   std::unique_ptr<SpatialDiscretization> geom_;
   std::unique_ptr<TimeIntegrableRHS>     rhs_;
@@ -34,9 +37,10 @@ class Puppeteer {
   static std::unique_ptr<TimeIntegrableRHS> rhsFactory(SpatialDiscretization&);
   std::unique_ptr<SpatialDiscretization>    geomFactory();
   std::unique_ptr<InitialConditions>        initialConditionsFactory();
-  static std::unique_ptr<TimeIntegrator>    timeIntegratorFactory(TimeIntegrableRHS&);
+  std::unique_ptr<TimeIntegrator>           timeIntegratorFactory(TimeIntegrableRHS&);
 
   void attachTimeObservers(TimeIntegrator&);
   void attachResidualObservers(TimeIntegrator&, TimeIntegrableRHS&);
   void attachSolutionObservers(TimeIntegrator&, SpatialDiscretization&, TimeIntegrableRHS&);
+  void programOptionsSanityCheck() const;
 };

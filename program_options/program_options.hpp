@@ -1,11 +1,10 @@
 #pragma once
 
-#include <vector>
 #include <string>
+#include <vector>
 
 
-class Options
-{
+class Options {
   // only allow ProgramOptionsParser to populate the Options members
   friend class ProgramOptionsParser;
 
@@ -30,21 +29,44 @@ class Options
 
   // governing equations options
   const std::string& equation_type() const { return equation_type_; }
-  double ch_m() const { return ch_m_; }
-  double ch_eps2() const { return ch_eps2_; }
-  double ch_sigma() const { return ch_sigma_; }
-  int    kernel_variant() const { return kernel_variant_; }
+  double             ch_m() const { return ch_m_; }
+  double             ch_eps2() const { return ch_eps2_; }
+  double             ch_sigma() const { return ch_sigma_; }
+  int                kernel_variant() const { return kernel_variant_; }
 
 
   // spatial_discretization options;
   double domain_x_begin() const { return domain_x_begin_; }
   double domain_x_end() const { return domain_x_end_; }
-  int    domain_resolution() const { return domain_resolution_; }
-  int    dimension() const { return dimension_; }
+  double domain_y_begin() const { return domain_y_begin_; }
+  double domain_y_end() const
+  {
+    return (domain_resolution_y_ / domain_resolution_x_) * (domain_x_end_ - domain_x_begin_) + domain_y_begin_;
+  }
+  double domain_z_begin() const { return domain_z_begin_; }
+  double domain_z_end() const
+  {
+    return (domain_resolution_z_ / domain_resolution_x_) * (domain_x_end_ - domain_x_begin_) + domain_z_begin_;
+  }
+  int                domain_resolution_x() const { return domain_resolution_x_; }
+  int                domain_resolution_y() const { return domain_resolution_y_; }
+  int                domain_resolution_z() const { return domain_resolution_z_; }
+  int                dimension() const { return dimension_; }
   const std::string& bc_x() const { return bc_x_; }
   const std::string& bc_y() const { return bc_y_; }
   const std::string& bc_z() const { return bc_z_; }
-  
+
+  // multigrid options
+  int         mg_max_cycles() const { return mg_max_cycles_; }
+  double      mg_rel_tol() const { return mg_rel_tol_; }
+  int         mg_verbosity() const { return mg_verbosity_; }
+  double      mg_relaxation() const { return mg_relaxation_; }
+  double      mg_coarse_relaxation() const { return mg_coarse_relaxation_; }
+  int         mg_nsmooth() const { return mg_nsmooth_; }
+  double      mg_cfl() const { return mg_cfl_; }
+  int         mg_levels() const { return mg_levels_; }
+  std::string mg_interpolation() const { return mg_interpolation_; }
+
   // time stepping options
   const std::string& time_integrator() const { return time_integrator_; }
   double             time_step_size() const { return time_step_size_; }
@@ -59,6 +81,7 @@ class Options
   double             time_rel_err_tol() const { return time_rel_err_tol_; }
   double             converged_rel_tol() const { return converged_rel_tol_; }
   double             converged_abs_tol() const { return converged_abs_tol_; }
+  const std::string& petsc_options() const { return petsc_options_; }
 
  private:
   Options() {}
@@ -73,20 +96,35 @@ class Options
   int         save_every_;
 
   // governing_equations options
-  std::string         equation_type_;
-  double              ch_m_;
-  double              ch_eps2_;
-  double              ch_sigma_;
-  int                 kernel_variant_;
+  std::string equation_type_;
+  double      ch_m_;
+  double      ch_eps2_;
+  double      ch_sigma_;
+  int         kernel_variant_;
 
   // spatial_discretization options;
-  double domain_x_begin_;
-  double domain_x_end_;
-  int domain_resolution_;
-  int dimension_;
+  double      domain_x_begin_;
+  double      domain_x_end_;
+  double      domain_y_begin_;
+  double      domain_z_begin_;
+  int         domain_resolution_x_;
+  int         domain_resolution_y_;
+  int         domain_resolution_z_;
+  int         dimension_;
   std::string bc_x_;
   std::string bc_y_;
   std::string bc_z_;
+
+  // multigrid options
+  int         mg_max_cycles_;
+  double      mg_rel_tol_;
+  int         mg_verbosity_;
+  double      mg_relaxation_;
+  double      mg_coarse_relaxation_;
+  int         mg_nsmooth_;
+  double      mg_cfl_;
+  int         mg_levels_;
+  std::string mg_interpolation_;
 
   // time stepping options
   std::string time_integrator_;
@@ -102,4 +140,5 @@ class Options
   double      time_rel_err_tol_;
   double      converged_rel_tol_;
   double      converged_abs_tol_;
+  std::string petsc_options_;
 };

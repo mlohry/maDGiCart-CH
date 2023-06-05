@@ -17,9 +17,36 @@ add_definitions(-DBOOST_BIND_GLOBAL_PLACEHOLDERS) # remove annoying boost pragma
 set(MADG_USE_RAJA ON)
 add_definitions(-DMADG_USE_RAJA)
 
+option(MADG_USE_CUDA "Build with CUDA GPU support" OFF)
+option(MADG_USE_HIP "Build with HIP GPU support" OFF)
 option(MADG_USE_GPU "Build with GPU support" OFF)
 option(MADG_USE_OPENMP "Build with OpenMP support" OFF)
 option(MADG_USE_SERIAL "Build with serial support" ON)
+option(MADG_USE_SINGLE_PRECISION "Build with single precision instead of double" OFF)
+
+if(MADG_USE_SINGLE_PRECISION)
+    add_definitions(-DMADG_USE_SINGLE_PRECISION)
+endif()
+
+if (MADG_USE_CUDA)
+    set(MADG_USE_GPU ON)
+    add_definitions(-DMADG_USE_CUDA)
+    enable_language(CUDA)
+    find_package(CUDA REQUIRED)
+    set(CMAKE_CUDA_STANDARD 14)
+    set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcudafe --diag_suppress=177  --Wext-lambda-captures-this -arch=sm_35 --expt-extended-lambda --expt-relaxed-constexpr -Wno-deprecated-gpu-targets -Xcompiler -Wno-non-template-friend,-Wall")
+endif(MADG_USE_CUDA)
+
+if (MADG_USE_HIP)
+    set(MADG_USE_GPU ON)
+    add_definitions(-DMADG_USE_HIP)
+    list (APPEND CMAKE_PREFIX_PATH /opt/rocm/hip /opt/rocm)
+    find_package(hip REQUIRED)
+    find_package(rocsparse REQUIRED)
+    add_definitions(-DMADG_USE_ROCSPARSE)
+
+endif(MADG_USE_HIP)
 
 if (MADG_USE_GPU)
   if (MADG_USE_OPENMP)
@@ -46,19 +73,6 @@ if(MADG_USE_SERIAL)
 endif()
 
 
-
-
-if(MADG_USE_GPU)
-    set(MADG_USE_CUDA ON)
-    add_definitions(-DMADG_USE_CUDA)
-    enable_language(CUDA)
-    find_package(CUDA REQUIRED)
-    set(CMAKE_CUDA_STANDARD 14)
-    set(CMAKE_CUDA_STANDARD_REQUIRED ON)
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --Wext-lambda-captures-this --Werror=all-warnings -arch=sm_35 --expt-extended-lambda --expt-relaxed-constexpr -Wno-deprecated-gpu-targets -Xcompiler -Wno-non-template-friend,-Wall,-Werror")
-endif(MADG_USE_GPU)
-
-
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release")
 endif()
@@ -72,10 +86,10 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release")
 endif()
 
 
-set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -Wall -Werror -Wno-error=unused-function -Wno-error=sign-compare -Wno-int-in-bool-context -Werror=reorder -fsanitize=address -fno-omit-frame-pointer ${STD_FLAG} ${FP_PRECISION_FLAG} ${OpenMP_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -Wall -Werror -Wno-error=unused-function -Wno-error=sign-compare -Wno-int-in-bool-context -Werror=reorder -Wno-unused-result -fno-omit-frame-pointer ${STD_FLAG} ${FP_PRECISION_FLAG} ${OpenMP_CXX_FLAGS}")
 
 #set(CMAKE_CXX_FLAGS_RELEASE "-O3 -g -Wall -Werror -Wno-error=maybe-uninitialized ${STD_FLAG} ${FP_PRECISION_FLAG} -march=native ${OpenMP_CXX_FLAGS} -ftree-vectorize -ftree-vectorizer-verbose=1")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -g -Wall -Werror -Wno-error=maybe-uninitialized ${STD_FLAG} ${FP_PRECISION_FLAG} -march=native ${OpenMP_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -g ${STD_FLAG} ${FP_PRECISION_FLAG} -march=native ${OpenMP_CXX_FLAGS}")
 
 
 set(EXTERNAL_INSTALL_DIR ${CMAKE_BINARY_DIR}/external_install)
@@ -95,6 +109,8 @@ include_directories(
         ${RAJA_INCLUDE_DIRS}
         ${EXTERNAL_INSTALL_DIR}/include
         ${TINYXML2_INCLUDE_DIR}
+        ${PETSC_INCLUDES}
+        ${ROC_LIB_INCLUDES}
 )
 
 link_directories(${EXTERNAL_INSTALL_DIR}/lib)

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "cahn_hilliard_parameters.hpp"
-#include "cahn_hilliard_state.hpp"
 #include "cahn_hilliard_base.hpp"
+#include "cahn_hilliard_parameters.hpp"
 #include "data_structures/managed_array_2d.hpp"
+#include "data_structures/scalar_solution_state.hpp"
 #include "governing_equations/time_integrable_rhs.hpp"
 #include "spatial_discretization/discretization_2d_cart.hpp"
 
@@ -14,14 +14,19 @@ class CahnHilliard2DFD : public CahnHilliardBase {
 
   void evalRHSImpl(const SolutionState& flovars, double time, SolutionState& rhs) override;
 
+  void evalJacobian(const SolutionState& flovars, double time, CSRMatrix& J) override;
+
   std::unique_ptr<SolutionState> createSolutionState() const override
   {
-    return std::make_unique<CahnHilliardState>(ManagedArrayOwner{}, "state", geom_.ni(), geom_.ni(), geom_.nhalo());
+    return std::make_unique<ScalarSolutionState2D>(ManagedArrayOwner{}, "state", geom_.ni(), geom_.ni(), geom_.nhalo());
   }
 
   int_t dofsPerEquation() const override { return geom_.nInteriorPoints(); }
 
   const IndexArray& interiorIndices() const override { return geom_.interiorIndices(); }
+
+  std::unique_ptr<CSRMatrix> createSparseMatrix() const override;
+  std::vector<int> nNonZerosPerRow() const override;
 
  private:
   Discretization2DCart& geom_;

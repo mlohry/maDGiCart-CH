@@ -3,6 +3,7 @@ include( ExternalTabulate.cmake )
 include( ExternalRAJA.cmake )
 include( ExternalCelero.cmake )
 include( ExternalTinyXML2.cmake )
+include( ExternalPetsc.cmake )
 
 set( external_libraries
         gtest_external
@@ -10,5 +11,6 @@ set( external_libraries
         tabulate_external
         celero_external
         tinyxml2_external
+        petsc_external
         PARENT_SCOPE
         )

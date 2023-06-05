@@ -1,16 +1,21 @@
 #include "machine.hpp"
 
-#include <vector>
-#include <fstream>
 #include <boost/algorithm/string.hpp>
+#include <fstream>
+#include <vector>
 
 #ifdef MADG_USE_OPENMP
 #include <omp.h>
 #endif
 
-#ifdef __NVCC__
+#ifdef MADG_USE_CUDA
 #include <cuda_runtime.h>
 #endif
+#ifdef MADG_USE_HIP
+#include <hip/hip_runtime.h>
+#endif
+
+#include <iostream>
 
 
 Machine::Machine()
@@ -30,24 +35,24 @@ Machine::getProcessorModel() const
 {
   std::string cpu_name = "not found";
 
-    std::string   line;
-    std::ifstream cpuinfo("/proc/cpuinfo");
-    if (cpuinfo.is_open()) {
-      while (std::getline(cpuinfo, line)) {
-        if (line.substr(0, 10) == "model name") {
-          std::vector<std::string> words;
-          boost::split(words, line, [](char c) { return c == ' '; });
-          if (words.size() > 2) {
-            cpu_name = words[2];
-            for (size_t i = 3; i < words.size(); ++i) {
-              cpu_name += " ";
-              cpu_name += words[i];
-            }
+  std::string   line;
+  std::ifstream cpuinfo("/proc/cpuinfo");
+  if (cpuinfo.is_open()) {
+    while (std::getline(cpuinfo, line)) {
+      if (line.substr(0, 10) == "model name") {
+        std::vector<std::string> words;
+        boost::split(words, line, [](char c) { return c == ' '; });
+        if (words.size() > 2) {
+          cpu_name = words[2];
+          for (size_t i = 3; i < words.size(); ++i) {
+            cpu_name += " ";
+            cpu_name += words[i];
           }
-          break;
         }
+        break;
       }
     }
+  }
 
   return cpu_name;
 }
@@ -58,10 +63,7 @@ Machine::getHostname() const
 {
   char host_name[HOST_NAME_MAX];
   gethostname(host_name, HOST_NAME_MAX);  // posix system function, can return null
-  if (host_name != nullptr) {
-    return std::string(host_name);
-  }
-  return "unknown";
+  return std::string(host_name);
 }
 
 
@@ -79,22 +81,31 @@ Machine::getUsername() const
 std::string
 Machine::getDeviceModel() const
 {
-#ifdef __NVCC__
+#ifdef MADG_USE_CUDA
   int dev = 0;
-  //  cudaSetDevice(dev);
   cudaDeviceProp deviceProp;
   cudaGetDeviceProperties(&deviceProp, dev);
+  return std::string(deviceProp.name);
+#endif
+#ifdef MADG_USE_HIP
+  int dev = 0;
+  hipDeviceProp_t deviceProp;
+  hipGetDeviceProperties(&deviceProp, dev);
   return std::string(deviceProp.name);
 #endif
   return "none";
 }
 
+
 int
 Machine::getDevicesPerNode() const
 {
   int deviceCount = 0;
-#ifdef __NVCC__
+#ifdef MADG_USE_CUDA
   cudaGetDeviceCount(&deviceCount);
+#endif
+#ifdef MADG_USE_HIP
+  hipGetDeviceCount(&deviceCount);
 #endif
   return deviceCount;
 }

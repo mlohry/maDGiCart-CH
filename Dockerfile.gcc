@@ -1,4 +1,6 @@
 FROM ubuntu:20.04
+RUN apt-key del 3bf863cc
+RUN apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/3bf863cc.pub
 ENV LANG C.UTF-8
 RUN export TZ=America/New_York
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
@@ -11,6 +13,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
     g++ \
     python3.8 \
     python3-pip \
+    git \
  && rm -rf /var/lib/apt/lists/* 
 COPY maDGiCart-CH/scripts/requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt

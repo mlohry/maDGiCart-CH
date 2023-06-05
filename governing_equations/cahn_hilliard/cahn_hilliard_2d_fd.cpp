@@ -17,7 +17,7 @@ void
 CahnHilliard2DFD::evalRHSImpl(const SolutionState& flovars, double time, SolutionState& rhs)
 {
   profile();
-  const CahnHilliardState& state = dynamic_cast<const CahnHilliardState&>(flovars);
+  const ScalarSolutionState2D& state = dynamic_cast<const ScalarSolutionState2D&>(flovars);
 
   geom_.applyPeriodicBoundaryConditions(const_cast<ManagedArray2DNonOwning<real_wp>&>(state.c()));
 
@@ -56,7 +56,7 @@ CahnHilliard2DFD::evalRHSImpl(const SolutionState& flovars, double time, Solutio
 
 
   {
-    CahnHilliardState& dstate_dt = dynamic_cast<CahnHilliardState&>(rhs);
+    ScalarSolutionState2D& dstate_dt = dynamic_cast<ScalarSolutionState2D&>(rhs);
     {
       auto r = write_access(dstate_dt.c().asArray());
       maDGForAll(i, 0, r.size(), { r[i] = real_wp(0); });
@@ -76,4 +76,23 @@ CahnHilliard2DFD::evalRHSImpl(const SolutionState& flovars, double time, Solutio
       rhs[i]      = -eps2 * del4[i] + del2[i] - sigterm[i];
     });
   }
+}
+
+
+std::unique_ptr<CSRMatrix> CahnHilliard2DFD::createSparseMatrix() const
+{
+  Logger::get().FatalMessage("CahnHilliard2DFD::createSparseMatrix() not implemented");
+  return nullptr;
+}
+
+void CahnHilliard2DFD::evalJacobian(const SolutionState& flovars, double time, CSRMatrix& J)
+{
+  Logger::get().FatalMessage("CahnHilliard2DFD::evalJacobian() not implemented");
+}
+
+
+std::vector<int> CahnHilliard2DFD::nNonZerosPerRow() const
+{
+  Logger::get().FatalMessage("CahnHilliard2DFD::nNonZerosPerRow() not implemented");
+  return {};
 }

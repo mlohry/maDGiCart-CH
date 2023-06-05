@@ -1,0 +1,50 @@
+# ****** File Options ****** #
+
+          solution_output_file = poisson_cube
+        initial_condition_file = none
+                      log_file = poisson_cube
+                 log_frequency = 1
+                    save_every = 50
+
+# ****** Physics Options ****** #
+
+                 equation_type = poisson
+
+# ****** Discretization Options ****** #
+
+                domain_x_begin = -3.14159265359
+                domain_y_begin = -3.14159265359
+                domain_z_begin = -3.14159265359
+                  domain_x_end = 3.14159265359
+           domain_resolution_x = 128
+           domain_resolution_y = 128
+           domain_resolution_z = 128
+                     dimension = 3
+                          bc_x = periodic
+                          bc_y = periodic
+                          bc_z = dirichlet
+
+# ****** Multigrid Options ****** #
+
+                 mg_max_cycles = 5000
+                    mg_rel_tol = 1e-06
+                  mg_verbosity = 2
+                 mg_relaxation = 0.9
+                    mg_nsmooth = 2
+                        mg_cfl = 0.2
+                     mg_levels = 4
+
+
+# ****** Time Stepping Options ****** #
+
+               time_integrator = steady
+                time_step_size = 0
+                  initial_time = 0
+                    final_time = 1
+                max_time_steps = 1
+             use_cfl_time_step = false
+        use_adaptive_time_step = false
+              time_rel_err_tol = 1e-06
+             converged_rel_tol = 0
+             converged_abs_tol = 0
+                 #petsc_options = -snes_rtol 1e-1 -mg_levels_ksp_max_it 2 -mg_levels_pc_type jacobi -mg_levels_ksp_type gmres -ts_type bdf -ts_max_snes_failures 10000 -ksp_max_it 30 -ksp_rtol 1e-1 -ksp_atol 1e-5 -ksp_norm_type unpreconditioned -snes_linesearch_monitor

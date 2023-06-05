@@ -23,7 +23,7 @@
   RAJA::forall<RAJA::simd_exec>(RAJA::RangeSegment(startindex, endindex), [=] (int indexname) { expression });
 
 
-#ifdef MADG_USE_GPU
+#ifdef MADG_USE_CUDA
 #ifdef __NVCC__
 #define MADG_CUDA_BLOCK_SIZE 256
 using device_exec_policy = RAJA::cuda_exec<MADG_CUDA_BLOCK_SIZE>;
@@ -33,23 +33,41 @@ using device_exec_policy = RAJA::cuda_exec<MADG_CUDA_BLOCK_SIZE>;
 
 #define maDGForAll maDGForAllDevice
 
-#define read_access(arg) arg.readDevice()
-#define write_access(arg) arg.writeDevice()
-#define read_write_access(arg) arg.readWriteDevice()
+#define read_access(arg) (arg).readDevice()
+#define write_access(arg) (arg).writeDevice()
+#define read_write_access(arg) (arg).readWriteDevice()
 
 #define ReduceSumReal RAJA::ReduceSum<RAJA::cuda_reduce_atomic, real_t>
 #define ReduceMinReal RAJA::ReduceMin<RAJA::cuda_reduce_atomic, real_t>
 #define ReduceMaxReal RAJA::ReduceMax<RAJA::cuda_reduce_atomic, real_t>
 
 #endif // __NVCC__
-#endif // MADG_USE_GPU
+#endif // MADG_USE_CUDA
+
+#ifdef MADG_USE_HIP
+#define MADG_HIP_BLOCK_SIZE 256
+using device_exec_policy = RAJA::hip_exec<MADG_HIP_BLOCK_SIZE>;
+
+#define maDGForAllDevice(indexname, startindex, endindex, expression) \
+  RAJA::forall<device_exec_policy>(RAJA::RangeSegment(startindex, endindex), [=] __device__ (int indexname) { expression });
+
+#define maDGForAll maDGForAllDevice
+
+#define read_access(arg) (arg).readDevice()
+#define write_access(arg) (arg).writeDevice()
+#define read_write_access(arg) (arg).readWriteDevice()
+
+#define ReduceSumReal RAJA::ReduceSum<RAJA::hip_reduce_atomic, real_t>
+#define ReduceMinReal RAJA::ReduceMin<RAJA::hip_reduce_atomic, real_t>
+#define ReduceMaxReal RAJA::ReduceMax<RAJA::hip_reduce_atomic, real_t>
+#endif // MADG_USE_HIP
 
 
 #ifdef MADG_USE_SERIAL
 #define maDGForAll maDGForAllHost
-#define read_access(arg) arg.readHost()
-#define write_access(arg) arg.writeHost()
-#define read_write_access(arg) arg.readWriteHost()
+#define read_access(arg) (arg).readHost()
+#define write_access(arg) (arg).writeHost()
+#define read_write_access(arg) (arg).readWriteHost()
 #define ReduceSumReal ReduceSumRealHostSeq
 #define ReduceMinReal ReduceMinRealHostSeq
 #define ReduceMaxReal ReduceMaxRealHostSeq
@@ -59,9 +77,9 @@ using device_exec_policy = RAJA::cuda_exec<MADG_CUDA_BLOCK_SIZE>;
 #include <omp.h>
 #define maDGForAll(indexname, startindex, endindex, expression) \
   RAJA::forall<RAJA::omp_parallel_for_exec>(RAJA::RangeSegment(startindex, endindex), [=] (int indexname) { expression });
-#define read_access(arg) arg.readHost()
-#define write_access(arg) arg.writeHost()
-#define read_write_access(arg) arg.readWriteHost()
+#define read_access(arg) (arg).readHost()
+#define write_access(arg) (arg).writeHost()
+#define read_write_access(arg) (arg).readWriteHost()
 #define ReduceSumReal RAJA::ReduceSum<RAJA::omp_reduce_ordered, real_t>
 #define ReduceMinReal RAJA::ReduceMin<RAJA::omp_reduce_ordered, real_t>
 #define ReduceMaxReal RAJA::ReduceMax<RAJA::omp_reduce_ordered, real_t>

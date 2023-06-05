@@ -19,11 +19,6 @@ void TimeIntegrator::solve(TimeIntegrableRHS& rhs, InitialConditions& initial_co
   initial_conditions.set(rhs, state);
 
   Logger::get().FatalAssert(state.nvecs() == rhs.nEquations(), "state.nvecs() == device_rhs.nEquations()");
-  for (int i = 0; i < state.nvecs(); ++i) {
-    Logger::get().WarningAssert(
-        state.getVec(i).size() == rhs.dofsPerEquation(),
-        "bad size: " + std::to_string(state.getVec(i).size()) + " != " + std::to_string(rhs.dofsPerEquation()));
-  }
 
   std::tie(time_, dt_, cfl_, iter_) = initialTimestep(rhs, time_options_, state);
 

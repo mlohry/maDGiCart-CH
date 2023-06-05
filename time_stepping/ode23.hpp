@@ -55,10 +55,10 @@ class ODE23 : public TimeIntegrator {
   const double a42_ = 1. / 3.;
   const double a43_ = 4. / 9.;
 
-  const double b1_ = 2. / 9.;
-  const double b2_ = 1. / 3.;
-  const double b3_ = 4. / 9.;
-  const double b4_ = 0;
+//  const double b1_ = 2. / 9.;
+//  const double b2_ = 1. / 3.;
+//  const double b3_ = 4. / 9.;
+//  const double b4_ = 0;
 
   const double d1_ = 7. / 24.;
   const double d2_ = 1. / 4.;

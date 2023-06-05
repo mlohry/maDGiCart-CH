@@ -55,7 +55,8 @@ The primary cmake command line options are
 
     -DMADG_USE_SERIAL=On
     -DMADG_USE_OPENMP=On
-    -DMADG_USE_GPU=On
+    -DMADG_USE_CUDA=On
+    -DMADG_USE_HIP=On
 
 where `-DMADG_USE_SERIAL=On` is the default. Only one of these options can be `On` for a build.
 
