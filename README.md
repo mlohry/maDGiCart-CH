@@ -74,7 +74,7 @@ where other OS's should be similar. Using an out-of-source build, use cmake:
 
 ### Docker build
 
-For consistent builds, a [Dockerfile for CPU gcc builds](Dockerfile.gcc) and a [Dockerfile for GPU CUDA builds](Dockerfile.cuda) are provided. The following workflow will build and run maDGiCart-CH in a container.
+For consistent builds, a [Dockerfile for CPU gcc builds](Dockerfile.gcc) and a [Dockerfile for  CUDA builds](Dockerfile.cuda) are provided. The following workflow will build and run maDGiCart-CH in a container.
 
 One time only (assuming the docker images are cached), build either or both docker images for the CPU or GPU builds:
 
@@ -109,7 +109,7 @@ Compile as above for CPU:
 or for GPU:
 
     cd /maDGiCart-CH-build
-    cmake /maDGiCart-CH -DMADG_USE_GPU=On
+    cmake /maDGiCart-CH -DMADG_USE_CUDA=On
     make -j 8
 
 Run unit tests and a sample solution:
